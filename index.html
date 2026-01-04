@@ -1,747 +1,763 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Cronos6x | Links</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Página de enlaces de Cronos6x" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <style>
-    :root {
-      --bg: #050816;
-      --bg-alt: #0b1020;
-      --accent: #6366f1;
-      --accent-soft: rgba(99, 102, 241, 0.25);
-      --text: #f9fafb;
-      --muted: #9ca3af;
-      --card: rgba(15, 23, 42, 0.85);
-      --success: #22c55e;
-      --radius-lg: 22px;
-      --radius-md: 14px;
-      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.7);
-      --blur: 22px;
-      --transition: 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Futurista</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+        :root {
+            --primary-color: #0a0e17;
+            --secondary-color: #1a1f2e;
+            --accent-color: #00d4ff;
+            --accent-color2: #ff00cc;
+            --text-color: #ffffff;
+            --cell-color: rgba(255, 255, 255, 0.05);
+            --winning-line-color: #ff00cc;
+            --glow-color: rgba(0, 212, 255, 0.7);
+            --glow-color2: rgba(255, 0, 204, 0.7);
+        }
 
-    body {
-      font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: radial-gradient(circle at top, #1e293b 0, #020617 45%, #000 100%);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+        body {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #0d1525 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
 
-    .container {
-      width: 100%;
-      max-width: 420px;
-      margin: 0 auto;
-    }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            padding: 30px;
+            border-radius: 24px;
+            background: rgba(10, 14, 23, 0.8);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .device {
-      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.98));
-      border-radius: 40px;
-      border: 1px solid rgba(148, 163, 184, 0.4);
-      padding: 14px;
-      max-width: 380px;
-      margin: 0 auto;
-      box-shadow: 0 22px 55px rgba(15, 23, 42, 0.9);
-      position: relative;
-    }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-color), var(--accent-color2));
+        }
 
-    .device-notch {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40%;
-      height: 16px;
-      background: #020617;
-      border-radius: 0 0 14px 14px;
-    }
+        .header {
+            text-align: center;
+            width: 100%;
+            position: relative;
+        }
 
-    .device-inner {
-      background: radial-gradient(circle at top, #020617 0, #020617 40%, #020617 100%);
-      border-radius: 26px;
-      padding: 22px 16px 18px;
-      border: 1px solid rgba(30, 64, 175, 0.45);
-      position: relative;
-      overflow: hidden;
-    }
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, var(--accent-color), var(--accent-color2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+            text-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
 
-    .device-inner::before {
-      content: "";
-      position: absolute;
-      inset: -35%;
-      background: radial-gradient(circle at top, rgba(37, 99, 235, 0.18), transparent 55%),
-                  radial-gradient(circle at bottom, rgba(236, 72, 153, 0.18), transparent 55%);
-      opacity: 0.9;
-      pointer-events: none;
-    }
+        .subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
 
-    .device-content {
-      position: relative;
-      z-index: 1;
-    }
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            background: var(--secondary-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
 
-    .profile {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
+        .player-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            padding: 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
 
-    .avatar {
-      width: 70px;
-      height: 70px;
-      border-radius: 24px;
-      background: radial-gradient(circle at top, #f97316, #ea580c, #b91c1c);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      box-shadow: 0 15px 35px rgba(249, 115, 22, 0.65);
-      border: 3px solid rgba(15, 23, 42, 0.9);
-    }
+        .player-x {
+            border: 2px solid transparent;
+            background: linear-gradient(var(--secondary-color), var(--secondary-color)) padding-box,
+                        linear-gradient(135deg, var(--accent-color), transparent) border-box;
+        }
 
-    .name {
-      font-weight: 600;
-      font-size: 17px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+        .player-o {
+            border: 2px solid transparent;
+            background: linear-gradient(var(--secondary-color), var(--secondary-color)) padding-box,
+                        linear-gradient(135deg, var(--accent-color2), transparent) border-box;
+        }
 
-    .username {
-      font-size: 11px;
-      color: var(--muted);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
+        .active-player {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
 
-    .bio {
-      font-size: 12px;
-      color: #e5e7eb;
-      max-width: 260px;
-      line-height: 1.4;
-    }
+        .player-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
 
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 6px;
-      margin: 8px 0 10px;
-    }
+        .player-x .player-name {
+            color: var(--accent-color);
+        }
 
-    .tag {
-      font-size: 10px;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(15, 23, 42, 0.8);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      color: var(--muted);
-    }
+        .player-o .player-name {
+            color: var(--accent-color2);
+        }
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 6px;
-      margin-bottom: 10px;
-    }
+        .score {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
 
-    .stat {
-      background: rgba(15, 23, 42, 0.88);
-      border-radius: 14px;
-      padding: 6px 8px;
-      border: 1px solid rgba(51, 65, 85, 0.9);
-      text-align: center;
-    }
+        .player-symbol {
+            font-size: 2.2rem;
+            margin-top: 5px;
+        }
 
-    .stat-label {
-      font-size: 9px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
+        .game-info {
+            text-align: center;
+            font-size: 1.4rem;
+            padding: 15px 25px;
+            border-radius: 50px;
+            background: var(--secondary-color);
+            width: 100%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-    .stat-value {
-      font-size: 13px;
-      font-weight: 600;
-    }
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 12px;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1 / 1;
+            margin: 0 auto;
+        }
 
-    .links {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 8px;
-    }
+        .cell {
+            background-color: var(--cell-color);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
 
-    .link-btn {
-      border-radius: 999px;
-      padding: 9px 11px;
-      border: 1px solid rgba(148, 163, 184, 0.45);
-      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.25), rgba(15, 23, 42, 0.95));
-      color: var(--text);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      font-size: 13px;
-      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease,
-                  background 0.12s ease;
-      cursor: pointer;
-    }
+        .cell:hover:not(.occupied) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
 
-    .link-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.85);
-      border-color: rgba(129, 140, 248, 0.9);
-      background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.35), rgba(15, 23, 42, 0.98));
-    }
+        .cell.x {
+            color: var(--accent-color);
+            text-shadow: 0 0 15px var(--glow-color);
+        }
 
-    .link-main {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
+        .cell.o {
+            color: var(--accent-color2);
+            text-shadow: 0 0 15px var(--glow-color2);
+        }
 
-    .link-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      background: rgba(15, 23, 42, 0.92);
-      border: 1px solid rgba(148, 163, 184, 0.6);
-    }
+        .winning-cell {
+            animation: pulse-win 1.5s infinite;
+        }
 
-    .link-text {
-      display: flex;
-      flex-direction: column;
-    }
+        @keyframes pulse-win {
+            0% { box-shadow: 0 0 10px var(--winning-line-color); }
+            50% { box-shadow: 0 0 25px var(--winning-line-color); }
+            100% { box-shadow: 0 0 10px var(--winning-line-color); }
+        }
 
-    .link-title {
-      font-size: 13px;
-      font-weight: 500;
-    }
+        .controls {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
 
-    .link-subtitle {
-      font-size: 10px;
-      color: var(--muted);
-    }
+        .btn {
+            padding: 16px 32px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
 
-    .link-meta {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 2px;
-    }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-color), #0088cc);
+            color: white;
+        }
 
-    .link-clicks {
-      font-size: 11px;
-      color: #a5b4fc;
-    }
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--accent-color2), #cc0088);
+            color: white;
+        }
 
-    .link-cta {
-      font-size: 10px;
-      color: #22c55e;
-    }
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
 
-    .footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 4px;
-    }
+        .btn:active {
+            transform: translateY(1px);
+        }
 
-    .socials {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
+        .winning-line {
+            position: absolute;
+            background: var(--winning-line-color);
+            box-shadow: 0 0 15px var(--winning-line-color);
+            z-index: 1;
+            border-radius: 3px;
+        }
 
-    .social-pill {
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      background: rgba(15, 23, 42, 0.92);
-      color: #e5e7eb;
-      cursor: pointer;
-      text-decoration: none;
-      transition: all var(--transition);
-    }
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
 
-    .social-pill:hover {
-      transform: translateY(-2px);
-      border-color: var(--accent);
-      background: rgba(15, 23, 42, 1);
-    }
+        /* Efectos futuristas adicionales */
+        .grid-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            opacity: 0.5;
+        }
 
-    .designer {
-      font-size: 9px;
-      color: var(--muted);
-    }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
 
-    .designer span {
-      color: #a5b4fc;
-    }
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
 
-    .page-footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 11px;
-      color: var(--muted);
-    }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .stats-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .game-board {
+                max-width: 350px;
+            }
+            
+            .cell {
+                font-size: 3.5rem;
+            }
+            
+            .btn {
+                padding: 14px 24px;
+                font-size: 1rem;
+            }
+        }
 
-    .page-footer a {
-      color: #a5b4fc;
-      text-decoration: none;
-    }
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .game-board {
+                max-width: 300px;
+            }
+            
+            .cell {
+                font-size: 2.8rem;
+                border-radius: 12px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 250px;
+                justify-content: center;
+            }
+        }
 
-    .page-footer a:hover {
-      text-decoration: underline;
-    }
+        /* Efectos de sonido visuales */
+        .sound-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 10;
+        }
 
-    .toast {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      background: rgba(15, 23, 42, 0.98);
-      border-radius: 999px;
-      border: 1px solid rgba(34, 197, 94, 0.8);
-      color: #bbf7d0;
-      padding: 7px 12px;
-      font-size: 12px;
-      display: none;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.9);
-      z-index: 50;
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .toast-icon {
-      font-size: 13px;
-    }
-
-    @media (max-width: 480px) {
-      .device {
-        padding: 10px;
-        border-radius: 30px;
-      }
-      
-      .device-inner {
-        padding: 18px 12px 14px;
-      }
-      
-      body {
-        padding: 10px;
-      }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .device {
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    .link-btn {
-      animation: fadeIn 0.5s ease-out;
-      animation-fill-mode: both;
-    }
-
-    .link-btn:nth-child(1) { animation-delay: 0.1s; }
-    .link-btn:nth-child(2) { animation-delay: 0.2s; }
-    .link-btn:nth-child(3) { animation-delay: 0.3s; }
-    .link-btn:nth-child(4) { animation-delay: 0.4s; }
-    .link-btn:nth-child(5) { animation-delay: 0.5s; }
-  </style>
+        .sound-toggle i {
+            font-size: 1.3rem;
+            color: var(--accent-color);
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="device">
-      <div class="device-notch"></div>
-      <div class="device-inner">
-        <div class="device-content">
-          <div class="profile">
-            <div class="avatar" id="public-avatar">⏳</div>
-            <div class="name">
-              <span id="public-name">Cronos</span>
-            </div>
-            <div class="username">@<span id="public-username">Cronos6x</span></div>
-            <p class="bio" id="public-bio">
-              Creador digital. Experimentos, negocios y proyectos que no duermen.
-            </p>
-            <div class="tags" id="public-tags">
-              <span class="tag">🧪 Experimentos</span>
-              <span class="tag">🚀 Proyectos</span>
-              <span class="tag">🌙 Late Night Builder</span>
-            </div>
-          </div>
-
-          <div class="stats" id="public-stats">
-            <div class="stat">
-              <div class="stat-label">Visitas</div>
-              <div class="stat-value" id="public-views">0</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">Clicks</div>
-              <div class="stat-value" id="public-clicks">0</div>
-            </div>
-            <div class="stat">
-              <div class="stat-label">CTR</div>
-              <div class="stat-value" id="public-ctr">0%</div>
-            </div>
-          </div>
-
-          <div class="links" id="public-links"></div>
-
-          <div class="footer">
-            <div class="socials" id="public-socials"></div>
-            <div class="designer">
-              hecho por <span>@Cronos6x</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="page-footer">
-      <p>© 2023 Cronos6x. Todos los derechos reservados.</p>
-      <p><a href="index.html" id="admin-link">Panel de Administración</a> | <a href="#" id="toggle-stats">Mostrar/ocultar estadísticas</a></p>
-    </div>
-  </div>
-
-  <div class="toast" id="toast">
-    <span class="toast-icon">🔗</span>
-    <span id="toast-text">Redirigiendo...</span>
-  </div>
-
-  <script>
-    const STORAGE_KEY = "cronos6x-bio-page-v2";
+    <div class="grid-bg"></div>
     
-    const defaultData = {
-      profile: {
-        name: "Cronos",
-        username: "Cronos6x",
-        avatar: "⏳",
-        bio: "Creador digital. Experimentos, negocios y proyectos que no duermen.",
-        tags: ["🧪 Experimentos", "🚀 Proyectos", "🌙 Late Night Builder"],
-      },
-      socials: {
-        ig: "@cronos6x",
-        wa: "",
-        x: "",
-      },
-      links: [
-        {
-          id: "aion",
-          title: "AION Parfums",
-          url: "https://aionparfums.com",
-          icon: "⚗️",
-          sub: "Tienda oficial de fragancias",
-          clicks: 0,
-          enabled: true,
-        },
-        {
-          id: "ig",
-          title: "Instagram",
-          url: "https://instagram.com/cronos6x",
-          icon: "📸",
-          sub: "Contenido y proyectos",
-          clicks: 0,
-          enabled: true,
-        },
-      ],
-      analytics: {
-        views: 0,
-        clicks: 0,
-      },
-    };
-
-    const elName = document.getElementById("public-name");
-    const elUsername = document.getElementById("public-username");
-    const elAvatar = document.getElementById("public-avatar");
-    const elBio = document.getElementById("public-bio");
-    const elTags = document.getElementById("public-tags");
-    const elLinks = document.getElementById("public-links");
-    const elSocials = document.getElementById("public-socials");
-    const elViews = document.getElementById("public-views");
-    const elClicks = document.getElementById("public-clicks");
-    const elCtr = document.getElementById("public-ctr");
-    const elStats = document.getElementById("public-stats");
-    const toast = document.getElementById("toast");
-    const toastText = document.getElementById("toast-text");
-    const adminLink = document.getElementById("admin-link");
-    const toggleStats = document.getElementById("toggle-stats");
-
-    function loadData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return defaultData;
+    <div class="container">
+        <div class="sound-toggle" id="soundToggle">
+            <i class="fas fa-volume-up"></i>
+        </div>
         
-        const savedData = JSON.parse(raw);
+        <div class="header">
+            <h1>TIC TAC TOE <span class="pulse">⚡</span></h1>
+            <p class="subtitle">Un juego futurista para dos jugadores</p>
+        </div>
         
-        return {
-          ...defaultData,
-          ...savedData,
-          profile: { ...defaultData.profile, ...(savedData.profile || {}) },
-          socials: { ...defaultData.socials, ...(savedData.socials || {}) },
-          links: savedData.links || defaultData.links,
-          analytics: { ...defaultData.analytics, ...(savedData.analytics || {}) }
-        };
-      } catch (error) {
-        console.error("Error cargando datos:", error);
-        return defaultData;
-      }
-    }
-
-    function renderPublicPage() {
-      const data = loadData();
-      
-      registerVisit(data);
-      
-      renderProfile(data.profile);
-      
-      renderLinks(data.links);
-      
-      renderSocials(data.socials);
-      
-      renderStats(data.analytics);
-      
-      setupAdminLink();
-    }
-
-    function registerVisit(data) {
-      data.analytics.views += 1;
-      
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      } catch (error) {
-        console.error("Error guardando estadísticas:", error);
-      }
-    }
-
-    function registerClick(linkId) {
-      const data = loadData();
-      const link = data.links.find(l => l.id === linkId);
-      
-      if (link) {
-        link.clicks = (link.clicks || 0) + 1;
-        data.analytics.clicks += 1;
+        <div class="stats-container">
+            <div class="player-stat player-x active-player" id="playerX">
+                <div class="player-name">JUGADOR X</div>
+                <div class="score" id="scoreX">0</div>
+                <div class="player-symbol">X</div>
+            </div>
+            
+            <div class="player-stat player-o" id="playerO">
+                <div class="player-name">JUGADOR O</div>
+                <div class="score" id="scoreO">0</div>
+                <div class="player-symbol">O</div>
+            </div>
+        </div>
         
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-        } catch (error) {
-          console.error("Error guardando clicks:", error);
+        <div class="game-info" id="gameInfo">
+            Turno de: <span style="color: var(--accent-color); font-weight: 700;">JUGADOR X</span>
+        </div>
+        
+        <div class="game-board" id="gameBoard">
+            <!-- Las celdas se generarán con JavaScript -->
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" id="restartBtn">
+                <i class="fas fa-redo"></i> Reiniciar Partida
+            </button>
+            <button class="btn btn-secondary" id="resetScoreBtn">
+                <i class="fas fa-trash-alt"></i> Reiniciar Marcadores
+            </button>
+        </div>
+        
+        <div class="footer">
+            Juego creado con HTML, CSS y JavaScript | Diseño futurista
+        </div>
+    </div>
+
+    <script>
+        // Variables del juego
+        let currentPlayer = 'X';
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = true;
+        let scores = { X: 0, O: 0 };
+        let soundEnabled = true;
+        
+        // Combinaciones ganadoras
+        const winningConditions = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
+            [0, 4, 8], [2, 4, 6]             // Diagonales
+        ];
+        
+        // Elementos del DOM
+        const gameBoardElement = document.getElementById('gameBoard');
+        const gameInfoElement = document.getElementById('gameInfo');
+        const scoreXElement = document.getElementById('scoreX');
+        const scoreOElement = document.getElementById('scoreO');
+        const playerXElement = document.getElementById('playerX');
+        const playerOElement = document.getElementById('playerO');
+        const restartBtn = document.getElementById('restartBtn');
+        const resetScoreBtn = document.getElementById('resetScoreBtn');
+        const soundToggle = document.getElementById('soundToggle');
+        
+        // Inicializar el tablero
+        function initializeBoard() {
+            gameBoardElement.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', () => handleCellClick(i));
+                gameBoardElement.appendChild(cell);
+            }
+            
+            updateGameInfo(`Turno de: <span style="color: var(--accent-color); font-weight: 700;">JUGADOR X</span>`);
+            updateActivePlayerIndicator();
         }
         
-        renderStats(data.analytics);
-      }
-    }
-
-    function renderProfile(profile) {
-      elName.textContent = profile.name || "Sin nombre";
-      elUsername.textContent = profile.username || "usuario";
-      elAvatar.textContent = profile.avatar || "✨";
-      elBio.textContent = profile.bio || "";
-      
-      elTags.innerHTML = "";
-      
-      (profile.tags || []).forEach(tag => {
-        const span = document.createElement("span");
-        span.className = "tag";
-        span.textContent = tag.trim();
-        elTags.appendChild(span);
-      });
-    }
-
-    function renderLinks(links) {
-      elLinks.innerHTML = "";
-      
-      const enabledLinks = links.filter(link => link.enabled !== false);
-      
-      enabledLinks.forEach(link => {
-        const button = document.createElement("a");
-        button.href = link.url;
-        button.target = "_blank";
-        button.rel = "noopener noreferrer";
-        button.className = "link-btn";
+        // Manejar clic en una celda
+        function handleCellClick(index) {
+            // Validar si la celda está ocupada o el juego no está activo
+            if (gameBoard[index] !== '' || !gameActive) {
+                return;
+            }
+            
+            // Hacer sonido
+            playSound('click');
+            
+            // Actualizar tablero lógico
+            gameBoard[index] = currentPlayer;
+            
+            // Actualizar tablero visual
+            const cellElement = document.querySelector(`.cell[data-index="${index}"]`);
+            cellElement.textContent = currentPlayer;
+            cellElement.classList.add('occupied', currentPlayer.toLowerCase());
+            
+            // Verificar si hay un ganador
+            checkGameResult();
+        }
         
-        button.addEventListener("click", () => {
-          registerClick(link.id);
-          showToast(`Abriendo: ${link.title}`);
+        // Verificar resultado del juego
+        function checkGameResult() {
+            let roundWon = false;
+            let winningCombination = [];
+            
+            // Verificar todas las combinaciones ganadoras
+            for (let i = 0; i < winningConditions.length; i++) {
+                const [a, b, c] = winningConditions[i];
+                
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    roundWon = true;
+                    winningCombination = [a, b, c];
+                    break;
+                }
+            }
+            
+            // Si hay un ganador
+            if (roundWon) {
+                playSound('win');
+                gameActive = false;
+                
+                // Actualizar puntuación
+                scores[currentPlayer]++;
+                updateScores();
+                
+                // Mostrar mensaje de victoria
+                updateGameInfo(`<span style="color: ${currentPlayer === 'X' ? 'var(--accent-color)' : 'var(--accent-color2)'}; font-weight: 700;">JUGADOR ${currentPlayer}</span> GANA!`);
+                
+                // Resaltar combinación ganadora
+                highlightWinningCells(winningCombination);
+                
+                // Dibujar línea ganadora
+                drawWinningLine(winningCombination);
+                return;
+            }
+            
+            // Verificar empate
+            const roundDraw = !gameBoard.includes('');
+            if (roundDraw) {
+                playSound('draw');
+                gameActive = false;
+                updateGameInfo('¡EMPATE!');
+                return;
+            }
+            
+            // Cambiar turno
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            updateGameInfo(`Turno de: <span style="color: ${currentPlayer === 'X' ? 'var(--accent-color)' : 'var(--accent-color2)'}; font-weight: 700;">JUGADOR ${currentPlayer}</span>`);
+            updateActivePlayerIndicator();
+        }
+        
+        // Resaltar celdas ganadoras
+        function highlightWinningCells(winningCombination) {
+            winningCombination.forEach(index => {
+                const cell = document.querySelector(`.cell[data-index="${index}"]`);
+                cell.classList.add('winning-cell');
+            });
+        }
+        
+        // Dibujar línea ganadora
+        function drawWinningLine(winningCombination) {
+            // Eliminar líneas anteriores
+            document.querySelectorAll('.winning-line').forEach(line => line.remove());
+            
+            const [a, b, c] = winningCombination;
+            const cellSize = document.querySelector('.cell').offsetWidth;
+            const gap = 12; // gap del grid
+            
+            // Calcular posiciones de las celdas
+            const rowA = Math.floor(a / 3);
+            const colA = a % 3;
+            const rowB = Math.floor(b / 3);
+            const colB = b % 3;
+            const rowC = Math.floor(c / 3);
+            const colC = c % 3;
+            
+            // Determinar dirección de la línea
+            let startX, startY, endX, endY;
+            
+            if (rowA === rowB && rowB === rowC) {
+                // Línea horizontal
+                startX = colA * (cellSize + gap) + cellSize / 2;
+                startY = rowA * (cellSize + gap) + cellSize / 2;
+                endX = colC * (cellSize + gap) + cellSize / 2;
+                endY = rowC * (cellSize + gap) + cellSize / 2;
+            } else if (colA === colB && colB === colC) {
+                // Línea vertical
+                startX = colA * (cellSize + gap) + cellSize / 2;
+                startY = rowA * (cellSize + gap) + cellSize / 2;
+                endX = colC * (cellSize + gap) + cellSize / 2;
+                endY = rowC * (cellSize + gap) + cellSize / 2;
+            } else {
+                // Línea diagonal
+                startX = colA * (cellSize + gap) + cellSize / 2;
+                startY = rowA * (cellSize + gap) + cellSize / 2;
+                endX = colC * (cellSize + gap) + cellSize / 2;
+                endY = rowC * (cellSize + gap) + cellSize / 2;
+            }
+            
+            // Calcular longitud y ángulo de la línea
+            const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+            
+            // Crear elemento de línea
+            const line = document.createElement('div');
+            line.classList.add('winning-line');
+            
+            // Posicionar la línea
+            line.style.width = `${length}px`;
+            line.style.height = '6px';
+            line.style.left = `${startX}px`;
+            line.style.top = `${startY}px`;
+            line.style.transform = `rotate(${angle}deg)`;
+            line.style.transformOrigin = '0 0';
+            
+            gameBoardElement.appendChild(line);
+        }
+        
+        // Actualizar información del juego
+        function updateGameInfo(message) {
+            gameInfoElement.innerHTML = message;
+        }
+        
+        // Actualizar indicador de jugador activo
+        function updateActivePlayerIndicator() {
+            if (currentPlayer === 'X') {
+                playerXElement.classList.add('active-player');
+                playerOElement.classList.remove('active-player');
+            } else {
+                playerOElement.classList.add('active-player');
+                playerXElement.classList.remove('active-player');
+            }
+        }
+        
+        // Actualizar marcadores
+        function updateScores() {
+            scoreXElement.textContent = scores.X;
+            scoreOElement.textContent = scores.O;
+        }
+        
+        // Reiniciar partida
+        function restartGame() {
+            playSound('click');
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            currentPlayer = 'X';
+            
+            // Limpiar tablero visual
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('occupied', 'x', 'o', 'winning-cell');
+            });
+            
+            // Eliminar línea ganadora
+            document.querySelectorAll('.winning-line').forEach(line => line.remove());
+            
+            // Actualizar UI
+            updateGameInfo(`Turno de: <span style="color: var(--accent-color); font-weight: 700;">JUGADOR X</span>`);
+            updateActivePlayerIndicator();
+        }
+        
+        // Reiniciar marcadores
+        function resetScores() {
+            playSound('click');
+            scores = { X: 0, O: 0 };
+            updateScores();
+            restartGame();
+        }
+        
+        // Sonidos del juego
+        function playSound(type) {
+            if (!soundEnabled) return;
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                if (type === 'click') {
+                    // Sonido de clic
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 800;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                    
+                } else if (type === 'win') {
+                    // Sonido de victoria
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // Do
+                    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // Mi
+                    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); // Sol
+                    
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.5);
+                    
+                } else if (type === 'draw') {
+                    // Sonido de empate
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.setValueAtTime(392, audioContext.currentTime); // Sol
+                    oscillator.frequency.setValueAtTime(349.23, audioContext.currentTime + 0.2); // Fa
+                    oscillator.frequency.setValueAtTime(293.66, audioContext.currentTime + 0.4); // Re
+                    
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.6);
+                }
+            } catch (e) {
+                console.log("El audio no está disponible en este navegador");
+            }
+        }
+        
+        // Alternar sonido
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = soundToggle.querySelector('i');
+            icon.className = soundEnabled ? 'fas fa-volume-up' : 'fas fa-volume-mute';
+            playSound('click');
+        }
+        
+        // Event listeners
+        restartBtn.addEventListener('click', restartGame);
+        resetScoreBtn.addEventListener('click', resetScores);
+        soundToggle.addEventListener('click', toggleSound);
+        
+        // Inicializar juego
+        initializeBoard();
+        
+        // Efecto de carga inicial
+        window.addEventListener('load', () => {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s';
+            
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
         });
-        
-        button.innerHTML = `
-          <div class="link-main">
-            <div class="link-icon">${link.icon || "🔗"}</div>
-            <div class="link-text">
-              <span class="link-title">${link.title || "Sin título"}</span>
-              <span class="link-subtitle">${link.sub || ""}</span>
-            </div>
-          </div>
-          <div class="link-meta">
-            <span class="link-clicks">${link.clicks || 0} clicks</span>
-            <span class="link-cta">Abrir ↗</span>
-          </div>
-        `;
-        
-        elLinks.appendChild(button);
-      });
-      
-      if (enabledLinks.length === 0) {
-        elLinks.innerHTML = `
-          <div style="text-align: center; padding: 20px; color: var(--muted); font-size: 12px;">
-            No hay enlaces disponibles por el momento.
-          </div>
-        `;
-      }
-    }
-
-    function renderSocials(socials) {
-      elSocials.innerHTML = "";
-      
-      if (socials.ig) {
-        const a = document.createElement("a");
-        a.className = "social-pill";
-        a.href = socials.ig.startsWith("@") 
-          ? "https://instagram.com/" + socials.ig.replace("@", "") 
-          : socials.ig;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = "Instagram";
-        a.innerHTML = '<i class="fab fa-instagram"></i>';
-        elSocials.appendChild(a);
-      }
-      
-      if (socials.wa) {
-        const a = document.createElement("a");
-        a.className = "social-pill";
-        a.href = socials.wa;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = "WhatsApp";
-        a.innerHTML = '<i class="fab fa-whatsapp"></i>';
-        elSocials.appendChild(a);
-      }
-      
-      if (socials.x) {
-        const a = document.createElement("a");
-        a.className = "social-pill";
-        a.href = socials.x.startsWith("@") 
-          ? "https://x.com/" + socials.x.replace("@", "") 
-          : socials.x;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = "X / Twitter";
-        a.innerHTML = '<i class="fab fa-twitter"></i>';
-        elSocials.appendChild(a);
-      }
-      
-      if (elSocials.children.length === 0) {
-        const span = document.createElement("span");
-        span.style.fontSize = "10px";
-        span.style.color = "var(--muted)";
-        span.textContent = "Sin redes sociales";
-        elSocials.appendChild(span);
-      }
-    }
-
-    function renderStats(analytics) {
-      const { views, clicks } = analytics;
-      const ctr = views > 0 ? Math.round((clicks / views) * 100) : 0;
-      
-      elViews.textContent = views;
-      elClicks.textContent = clicks;
-      elCtr.textContent = ctr + "%";
-    }
-
-    function setupAdminLink() {
-      const isGitHubPages = window.location.hostname.includes('github.io');
-      
-      if (isGitHubPages) {
-        adminLink.href = "index.html";
-      } else {
-        adminLink.href = "index.html";
-      }
-    }
-
-    function showToast(message) {
-      toastText.textContent = message;
-      toast.style.display = "flex";
-      
-      setTimeout(() => {
-        toast.style.display = "none";
-      }, 2000);
-    }
-
-    toggleStats.addEventListener("click", (e) => {
-      e.preventDefault();
-      elStats.style.display = elStats.style.display === "none" ? "grid" : "none";
-      toggleStats.textContent = elStats.style.display === "none" 
-        ? "Mostrar estadísticas" 
-        : "Ocultar estadísticas";
-    });
-
-    function checkUrlParams() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const ref = urlParams.get('ref');
-      
-      if (ref) {
-        console.log(`Referido por: ${ref}`);
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      renderPublicPage();
-      checkUrlParams();
-      
-      setTimeout(() => {
-        showToast("¡Bienvenido a mi página de links!");
-      }, 1000);
-    });
-
-    setInterval(() => {
-      renderPublicPage();
-    }, 30000);
-  </script>
+    </script>
 </body>
 </html>
