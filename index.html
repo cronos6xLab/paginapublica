@@ -3,646 +3,748 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Laberinto - 3 Niveles</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>Conteo Fisico de Inventario</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
-        body {
-            background: #0f0c29;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            min-height: 100vh;
-            overflow: hidden;
-            font-family: 'Press Start 2P', cursive;
+        :root {
+            --bg:#0e1015; --bg2:#161920; --card:#1c2029; --card2:#222733;
+            --border:#2a2f40; --fg:#e4e6ec; --muted:#7c829a;
+            --accent:#d9883b; --accent2:#efb055; --accent-glow:rgba(217,136,59,.12);
+            --red:#e05050; --red-bg:rgba(224,80,80,.09); --red-bdr:rgba(224,80,80,.40);
+            --amber:#e0a830; --amber-bg:rgba(224,168,48,.09); --amber-bdr:rgba(224,168,48,.40);
+            --green:#3ab876; --green-bg:rgba(58,184,118,.09); --green-bdr:rgba(58,184,118,.40);
+            --r:8px;
         }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--fg);min-height:100vh}
 
-        canvas {
-            border: 3px solid #7c3aed;
-            border-radius: 12px;
-            box-shadow: 0 0 30px rgba(124, 58, 237, 0.5), inset 0 0 30px rgba(124, 58, 237, 0.1);
-        }
+        .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+        .bg-fx .o{position:absolute;border-radius:50%;filter:blur(130px);opacity:.1;animation:orbF 22s ease-in-out infinite alternate}
+        .bg-fx .o:nth-child(1){width:550px;height:550px;background:var(--accent);top:-180px;left:-80px}
+        .bg-fx .o:nth-child(2){width:450px;height:450px;background:#c0392b;bottom:-120px;right:-80px;animation-delay:-8s}
+        .bg-fx .o:nth-child(3){width:350px;height:350px;background:#16a085;top:50%;left:55%;animation-delay:-15s}
+        @keyframes orbF{0%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,-20px) scale(1.08)}100%{transform:translate(-15px,15px) scale(.94)}}
 
-        .glow-text {
-            text-shadow: 0 0 10px #a78bfa, 0 0 20px #7c3aed, 0 0 40px #5b21b6;
-        }
+        .wrap{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:16px 14px 110px}
 
-        .btn-level {
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+        header{text-align:center;padding:20px 0 16px}
+        header .ico{width:50px;height:50px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;color:#fff;margin-bottom:10px;box-shadow:0 6px 24px rgba(217,136,59,.3)}
+        header h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.4rem,4.5vw,2.1rem);font-weight:700;letter-spacing:-1px;background:linear-gradient(135deg,var(--fg),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        header p{color:var(--muted);margin-top:3px;font-size:.84rem}
 
-        .btn-level::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            transform: scale(0);
-            transition: transform 0.5s;
-        }
+        .top-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+        .top-row .fld{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:8px 12px}
+        .top-row label{display:block;font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px}
+        .top-row input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 9px;color:var(--fg);font-family:'DM Sans',sans-serif;font-size:.84rem;outline:none;transition:border .2s}
+        .top-row input:focus{border-color:var(--accent)}
 
-        .btn-level:hover::before {
-            transform: scale(1);
-        }
+        /* Progreso + Resumen */
+        .stats-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+        .stat-card{flex:1;min-width:100px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;text-align:center}
+        .stat-card .num{font-family:'Space Grotesk',sans-serif;font-size:1.3rem;font-weight:700}
+        .stat-card .lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+        .stat-card.s-total .num{color:var(--accent2)}
+        .stat-card.s-ok .num{color:var(--green)}
+        .stat-card.s-low .num{color:var(--red)}
+        .stat-card.s-high .num{color:var(--amber)}
 
-        .btn-level:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        .prog-wrap{margin-bottom:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px}
+        .prog-lbl{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted);margin-bottom:5px}
+        .prog-lbl strong{color:var(--accent2);font-size:.82rem}
+        .prog-trk{height:6px;background:var(--bg2);border-radius:3px;overflow:hidden}
+        .prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width .35s ease;width:0%}
 
-        .pulse-ball {
-            animation: pulse 1.5s ease-in-out infinite;
-        }
+        /* Leyenda */
+        .legend{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:14px;padding:8px 14px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);font-size:.72rem;color:var(--muted)}
+        .legend i{margin-right:3px}
+        .lg-red{color:var(--red)}.lg-amber{color:var(--amber)}.lg-ok{color:var(--accent2)}
 
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
+        /* Buscador */
+        .search-bar{margin-bottom:14px;position:relative}
+        .search-bar input{width:100%;padding:10px 14px 10px 38px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);color:var(--fg);font-family:'DM Sans',sans-serif;font-size:.86rem;outline:none;transition:border .2s}
+        .search-bar input:focus{border-color:var(--accent)}
+        .search-bar input::placeholder{color:var(--muted)}
+        .search-bar .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.85rem}
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
+        /* Tabs */
+        .tabs{display:flex;gap:3px;margin-bottom:16px;background:var(--bg2);border-radius:9px;padding:3px;overflow-x:auto}
+        .tab-btn{flex:1;min-width:fit-content;padding:8px 12px;background:0;border:0;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:500;border-radius:6px;cursor:pointer;transition:.2s;white-space:nowrap}
+        .tab-btn:hover{color:var(--fg);background:var(--card)}
+        .tab-btn.on{color:#fff;background:var(--accent);font-weight:700;box-shadow:0 2px 10px rgba(217,136,59,.25)}
+        .tpanel{display:none;animation:fi .25s ease}.tpanel.on{display:block}
+        @keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
+        /* Categoría */
+        .cat-sec{margin-bottom:20px}
+        .cat-hd{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:2px solid var(--border);cursor:pointer;user-select:none}
+        .cat-hd:hover .ct{color:var(--accent)}
+        .cat-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+        .cat-nm{font-family:'Space Grotesk',sans-serif;font-size:.92rem;font-weight:700;letter-spacing:-.3px}
+        .cat-cnt{font-size:.65rem;color:var(--muted);background:var(--bg2);padding:2px 7px;border-radius:16px;margin-left:auto}
+        .ct{color:var(--muted);font-size:.6rem;transition:.2s;margin-left:4px}
+        .cat-body{transition:.2s}.cat-body.hide{display:none}
 
-        .confetti-container {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 100;
-        }
+        /* Fila producto */
+        .prow{display:flex;align-items:center;gap:6px;padding:7px 10px;background:var(--card);border:1px solid var(--border);border-radius:var(--r);margin-bottom:5px;transition:.2s}
+        .prow:hover{background:var(--card2)}
+        .prow.st-low{background:var(--red-bg);border-color:var(--red-bdr);border-left:3px solid var(--red)}
+        .prow.st-high{background:var(--amber-bg);border-color:var(--amber-bdr);border-left:3px solid var(--amber)}
+        .prow.st-ok{background:var(--green-bg);border-color:var(--green-bdr);border-left:3px solid var(--green)}
+        .prow.hidden{display:none}
 
-        .key-hint {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 8px;
-            padding: 6px 10px;
-            font-size: 10px;
-            color: #a78bfa;
-        }
+        .pn{flex:1;font-size:.78rem;font-weight:500;min-width:0;line-height:1.25}
+        .pn .pr{font-size:.6rem;color:var(--muted);margin-top:1px}
 
-        .mobile-btn {
-            width: 56px;
-            height: 56px;
-            background: rgba(124, 58, 237, 0.4);
-            border: 2px solid rgba(167, 139, 250, 0.5);
-            border-radius: 12px;
-            color: white;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.15s;
-            -webkit-tap-highlight-color: transparent;
-        }
+        .badge{font-size:.52rem;padding:1px 5px;border-radius:3px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;background:var(--bg2);color:var(--muted);flex-shrink:0;white-space:nowrap}
+        .prow.st-low .badge{background:var(--red);color:#fff}
+        .prow.st-high .badge{background:var(--amber);color:#1a1a1a}
+        .prow.st-ok .badge{background:var(--green);color:#fff}
 
-        .mobile-btn:active {
-            background: rgba(124, 58, 237, 0.8);
-            transform: scale(0.92);
+        .igrp{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0;transition:border .2s}
+        .igrp:focus-within{border-color:var(--accent)}
+        .igrp input[type=number]{width:72px;padding:6px 7px;background:0;border:0;color:var(--fg);font-family:'Space Grotesk',sans-serif;font-size:.88rem;font-weight:600;text-align:right;outline:0;-moz-appearance:textfield}
+        .igrp input::-webkit-inner-spin-button,.igrp input::-webkit-outer-spin-button{-webkit-appearance:none}
+        .igrp .usel{padding:6px 4px;background:var(--card);border:0;border-left:1px solid var(--border);color:var(--accent2);font-family:'DM Sans',sans-serif;font-size:.68rem;font-weight:700;cursor:pointer;outline:0;min-width:38px}
+        .igrp .usel option{background:var(--bg2);color:var(--fg)}
+
+        /* Acciones */
+        .act-bar{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to top,var(--bg) 65%,transparent);padding:14px 14px 10px;display:flex;gap:7px;flex-wrap:wrap;z-index:10;justify-content:center;max-width:940px;margin:0 auto}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border:0;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:.2s}
+        .btn:active{transform:scale(.96)}
+        .btn-p{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 16px rgba(217,136,59,.3)}
+        .btn-p:hover{box-shadow:0 6px 22px rgba(217,136,59,.4)}
+        .btn-s{background:var(--card);color:var(--fg);border:1px solid var(--border)}
+        .btn-s:hover{border-color:var(--accent)}
+        .btn-d{background:0;color:var(--red);border:1px solid rgba(224,80,80,.3)}
+        .btn-d:hover{background:var(--red);color:#fff}
+        .act-bar .btn{flex:1;min-width:110px;justify-content:center}
+
+        /* Modal */
+        .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;justify-content:center;align-items:flex-start;padding:16px;overflow-y:auto}
+        .modal-bg.show{display:flex}
+        .modal-box{background:#fff;color:#1a1a1a;border-radius:10px;width:100%;max-width:820px;margin-top:16px;animation:mi .25s ease}
+        @keyframes mi{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+        .modal-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #e0e0e0}
+        .modal-hd h2{font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:700}
+        .modal-x{width:32px;height:32px;background:#f0f0f0;border:0;border-radius:50%;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#666;transition:.2s}
+        .modal-x:hover{background:#e0e0e0}
+        .modal-bd{padding:18px;max-height:62vh;overflow-y:auto}
+        .modal-ft{display:flex;gap:7px;padding:12px 18px;border-top:1px solid #e0e0e0}
+        .modal-ft .btn{flex:1;justify-content:center}
+        .btn-pr{background:#1a1a1a;color:#fff}.btn-pf{background:var(--red);color:#fff}
+
+        /* Reporte */
+        .rpt .rh{text-align:center;margin-bottom:18px;padding-bottom:12px;border-bottom:2px solid #1a1a1a}
+        .rpt .rh h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:700}
+        .rpt .rm{display:flex;justify-content:space-between;flex-wrap:wrap;gap:5px;margin-top:5px;font-size:.74rem;color:#666}
+        .rpt table{width:100%;border-collapse:collapse;font-size:.72rem}
+        .rpt thead th{background:#1a1a1a;color:#fff;padding:6px 8px;text-align:left;font-weight:700;font-size:.64rem;text-transform:uppercase;letter-spacing:.4px}
+        .rpt .cr td{background:#f4f4f4;padding:5px 8px;font-weight:700;font-size:.72rem;color:#333;border-bottom:2px solid #ddd}
+        .rpt tbody td{padding:4px 8px;border-bottom:1px solid #eee}
+        .rpt tbody tr:nth-child(even) td{background:#fafafa}
+        .rpt .cl{color:#c0392b;font-weight:700}.rpt .ch{color:#d4880f;font-weight:700}.rpt .co{color:#1a1a1a;font-weight:600}
+        .rpt .ev{color:#ccc;font-style:italic}
+        .rpt .tr td{background:#1a1a1a;color:#fff;padding:8px;font-weight:700;font-size:.72rem}
+
+        /* Historial */
+        .hlist{display:flex;flex-direction:column;gap:7px}
+        .hcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:10px}
+        .hcard:hover{border-color:var(--accent);background:var(--card2)}
+        .hico{width:36px;height:36px;background:var(--accent-glow);border-radius:7px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:.9rem;flex-shrink:0}
+        .hinfo{flex:1}.hinfo h4{font-size:.84rem;font-weight:700}.hinfo p{font-size:.68rem;color:var(--muted);margin-top:1px}
+        .hacts{display:flex;gap:4px}
+        .hacts button{width:28px;height:28px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--muted);cursor:pointer;font-size:.7rem;transition:.2s}
+        .hacts button:hover{color:var(--fg);border-color:var(--accent)}
+        .hacts button.del:hover{color:var(--red);border-color:var(--red)}
+        .empty{text-align:center;padding:40px 16px;color:var(--muted)}
+        .empty i{font-size:2.2rem;margin-bottom:10px;opacity:.3}.empty h3{font-size:.95rem;margin-bottom:3px;color:var(--fg)}
+
+        /* Toast */
+        .toast-c{position:fixed;top:14px;right:14px;z-index:2000;display:flex;flex-direction:column;gap:5px}
+        .toast{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:9px 14px;font-size:.8rem;color:var(--fg);display:flex;align-items:center;gap:7px;box-shadow:0 6px 20px rgba(0,0,0,.4);animation:ti .25s ease,to .25s ease 2.7s forwards;min-width:200px}
+        .toast.ok{border-left:3px solid var(--green)}.toast.err{border-left:3px solid var(--red)}
+        .toast.ok i{color:var(--green)}.toast.err i{color:var(--red)}
+        @keyframes ti{from{opacity:0;transform:translateX(25px)}to{opacity:1;transform:translateX(0)}}
+        @keyframes to{from{opacity:1}to{opacity:0;transform:translateY(-8px)}}
+
+        @media(max-width:600px){
+            .prow{flex-wrap:wrap;gap:3px;padding:6px 8px}
+            .pn{width:100%;margin-bottom:1px}
+            .igrp{margin-left:auto}
+            .modal-box{border-radius:0;margin-top:0}
+            .stats-bar{gap:5px}.stat-card{min-width:70px;padding:7px 8px}.stat-card .num{font-size:1rem}
         }
+        @media print{
+            body{background:#fff!important}
+            .wrap,.modal-bg,.bg-fx,.toast-c,.act-bar,.tabs{display:none!important}
+            #printArea{display:block!important;position:fixed;inset:0;background:#fff;z-index:99999;padding:14px}
+        }
+        #printArea{display:none}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body>
+<div class="bg-fx"><div class="o"></div><div class="o"></div><div class="o"></div></div>
+<div class="wrap">
+    <header>
+        <div class="ico"><i class="fas fa-clipboard-check"></i></div>
+        <h1>Conteo Fisico de Inventario</h1>
+        <p>Registra, verifica minimos/maximos, guarda e imprime</p>
+    </header>
 
-    <!-- PANTALLA DE INICIO -->
-    <div id="menu" class="text-center fade-in">
-        <h1 class="text-3xl md:text-4xl font-bold text-purple-300 glow-text mb-3 leading-relaxed">🏆 LABERINTO</h1>
-        <p class="text-purple-400 text-xs mb-8 tracking-wider">Lleva la pelota hasta la meta</p>
-
-        <div class="flex flex-col gap-4 items-center mb-8">
-            <button onclick="startGame('easy')" class="btn-level bg-gradient-to-r from-green-600 to-emerald-500 text-white px-8 py-4 rounded-xl text-sm w-64 shadow-lg shadow-green-900/40 cursor-pointer">
-                🟢 FÁCIL
-                <span class="block text-[10px] mt-1 opacity-75">Laberinto 8×8</span>
-            </button>
-            <button onclick="startGame('medium')" class="btn-level bg-gradient-to-r from-yellow-600 to-amber-500 text-white px-8 py-4 rounded-xl text-sm w-64 shadow-lg shadow-yellow-900/40 cursor-pointer">
-                🟡 MEDIO
-                <span class="block text-[10px] mt-1 opacity-75">Laberinto 12×12</span>
-            </button>
-            <button onclick="startGame('hard')" class="btn-level bg-gradient-to-r from-red-600 to-rose-500 text-white px-8 py-4 rounded-xl text-sm w-64 shadow-lg shadow-red-900/40 cursor-pointer">
-                🔴 DIFÍCIL
-                <span class="block text-[10px] mt-1 opacity-75">Laberinto 16×16</span>
-            </button>
-        </div>
-
-        <div class="flex gap-4 justify-center flex-wrap">
-            <div class="key-hint">⬆⬇⬅➡ Mover</div>
-            <div class="key-hint">WASD Alternativo</div>
-            <div class="key-hint">📱 Touch Soportado</div>
-        </div>
+    <div class="top-row">
+        <div class="fld"><label>Fecha</label><input type="date" id="cDate"></div>
+        <div class="fld"><label>Responsable</label><input type="text" id="cResp" placeholder="Nombre"></div>
+        <div class="fld"><label>Sede</label><input type="text" id="cLoc" placeholder="Sucursal"></div>
     </div>
 
-    <!-- PANTALLA DE JUEGO -->
-    <div id="game" class="hidden text-center fade-in">
-        <div class="flex items-center justify-between mb-4 w-full max-w-lg mx-auto px-2">
-            <button onclick="backToMenu()" class="text-purple-400 hover:text-white text-xs cursor-pointer transition-colors">◀ MENÚ</button>
-            <div>
-                <span id="levelLabel" class="text-purple-300 text-xs"></span>
-            </div>
-            <div class="text-right">
-                <span class="text-purple-500 text-[10px]">TIEMPO</span>
-                <span id="timer" class="text-purple-300 text-xs block">00:00</span>
-            </div>
-        </div>
-
-        <canvas id="mazeCanvas"></canvas>
-
-        <div class="flex items-center justify-between mt-4 w-full max-w-lg mx-auto px-2">
-            <span id="movesLabel" class="text-purple-500 text-[10px]">MOVIMIENTOS: <span id="moves" class="text-purple-300">0</span></span>
-            <button onclick="restartLevel()" class="text-yellow-400 hover:text-yellow-200 text-[10px] cursor-pointer transition-colors">🔄 REINICIAR</button>
-        </div>
-
-        <!-- Controles móviles -->
-        <div id="mobileControls" class="mt-6 md:hidden">
-            <div class="flex flex-col items-center gap-1">
-                <div class="mobile-btn" ontouchstart="handleMobileBtn(event,'up')" onmousedown="handleMobileBtn(event,'up')">▲</div>
-                <div class="flex gap-1">
-                    <div class="mobile-btn" ontouchstart="handleMobileBtn(event,'left')" onmousedown="handleMobileBtn(event,'left')">◀</div>
-                    <div class="mobile-btn" ontouchstart="handleMobileBtn(event,'down')" onmousedown="handleMobileBtn(event,'down')">▼</div>
-                    <div class="mobile-btn" ontouchstart="handleMobileBtn(event,'right')" onmousedown="handleMobileBtn(event,'right')">➤</div>
-                </div>
-            </div>
-        </div>
+    <div class="stats-bar">
+        <div class="stat-card s-total"><div class="num" id="sTotal">0</div><div class="lbl">Total Productos</div></div>
+        <div class="stat-card s-ok"><div class="num" id="sOk">0</div><div class="lbl">En Rango</div></div>
+        <div class="stat-card s-low"><div class="num" id="sLow">0</div><div class="lbl">Bajo Minimo</div></div>
+        <div class="stat-card s-high"><div class="num" id="sHigh">0</div><div class="lbl">Sobre Maximo</div></div>
     </div>
 
-    <!-- PANTALLA DE VICTORIA -->
-    <div id="winScreen" class="hidden text-center fade-in">
-        <div class="confetti-container" id="confettiContainer"></div>
-        <h2 class="text-3xl md:text-4xl font-bold text-yellow-300 glow-text mb-4">🎉 ¡GANASTE!</h2>
-        <div class="bg-white/5 backdrop-blur rounded-xl p-6 mb-6 border border-white/10 max-w-sm mx-auto">
-            <p id="winLevel" class="text-purple-300 text-xs mb-3"></p>
-            <p class="text-purple-500 text-[10px] mb-1">⏱ TIEMPO</p>
-            <p id="winTime" class="text-white text-lg mb-3"></p>
-            <p class="text-purple-500 text-[10px] mb-1">👣 MOVIMIENTOS</p>
-            <p id="winMoves" class="text-white text-lg mb-3"></p>
-            <p id="winStars" class="text-3xl mb-1"></p>
-            <p id="winRating" class="text-purple-400 text-[10px]"></p>
-        </div>
-        <div class="flex gap-3 justify-center flex-wrap">
-            <button onclick="restartLevel()" class="btn-level bg-gradient-to-r from-purple-600 to-violet-500 text-white px-6 py-3 rounded-xl text-xs cursor-pointer shadow-lg">🔄 REPETIR</button>
-            <button onclick="backToMenu()" class="btn-level bg-gradient-to-r from-indigo-600 to-blue-500 text-white px-6 py-3 rounded-xl text-xs cursor-pointer shadow-lg">📋 MENÚ</button>
-        </div>
+    <div class="prog-wrap">
+        <div class="prog-lbl"><span>Progreso del conteo</span><strong id="pTxt">0 / 0</strong></div>
+        <div class="prog-trk"><div class="prog-fill" id="pFill"></div></div>
     </div>
 
-    <script>
-        // ===================== CONFIGURACIÓN =====================
-        const CONFIG = {
-            easy:   { cols: 8,  rows: 8,  label: '🟢 FÁCIL (8×8)',   color: '#10b981', starTime: [30, 60], starMoves: [40, 70] },
-            medium: { cols: 12, rows: 12, label: '🟡 MEDIO (12×12)', color: '#f59e0b', starTime: [60, 120], starMoves: [80, 140] },
-            hard:   { cols: 16, rows: 16, label: '🔴 DIFÍCIL (16×16)', color: '#ef4444', starTime: [120, 240], starMoves: [150, 260] }
-        };
+    <div class="legend">
+        <span><i class="fas fa-circle lg-red"></i> Bajo minimo (reabastecer)</span>
+        <span><i class="fas fa-circle lg-amber"></i> Sobre maximo (exceso)</span>
+        <span><i class="fas fa-circle lg-ok"></i> En rango correcto</span>
+    </div>
 
-        let canvas, ctx;
-        let currentLevel = null;
-        let maze = [];
-        let player = { x: 0, y: 0 };
-        let goal = { x: 0, y: 0 };
-        let cellSize = 0;
-        let moveCount = 0;
-        let timerInterval = null;
-        let startTime = 0;
-        let gameActive = false;
-        let playerAnimOffset = 0;
-        let animFrame = null;
+    <div class="search-bar">
+        <i class="fas fa-search si"></i>
+        <input type="text" id="searchInput" placeholder="Buscar producto...">
+    </div>
 
-        // ===================== GENERACIÓN DE LABERINTO (Recursive Backtracker) =====================
-        function generateMaze(cols, rows) {
-            // Cada celda: { top, right, bottom, left, visited }
-            const grid = [];
-            for (let y = 0; y < rows; y++) {
-                grid[y] = [];
-                for (let x = 0; x < cols; x++) {
-                    grid[y][x] = { top: true, right: true, bottom: true, left: true, visited: false };
-                }
-            }
+    <nav class="tabs" id="navTabs">
+        <button class="tab-btn on" data-tab="conteo"><i class="fas fa-pen"></i> Conteo</button>
+        <button class="tab-btn" data-tab="historial"><i class="fas fa-clock-rotate-left"></i> Historial</button>
+    </nav>
 
-            const stack = [];
-            const startX = 0, startY = 0;
-            grid[startY][startX].visited = true;
-            stack.push({ x: startX, y: startY });
+    <div class="tpanel on" id="p-conteo"><main id="invForm"></main></div>
+    <div class="tpanel" id="p-historial"><div id="histCont"></div></div>
+</div>
 
-            while (stack.length > 0) {
-                const current = stack[stack.length - 1];
-                const neighbors = [];
+<div class="act-bar">
+    <button class="btn btn-d" onclick="clearAll()"><i class="fas fa-eraser"></i> Limpiar</button>
+    <button class="btn btn-s" onclick="saveCount()"><i class="fas fa-floppy-disk"></i> Guardar</button>
+    <button class="btn btn-p" onclick="genReport()"><i class="fas fa-file-lines"></i> Vista / PDF</button>
+</div>
 
-                const dirs = [
-                    { dx: 0, dy: -1, wall: 'top', opposite: 'bottom' },
-                    { dx: 1, dy: 0, wall: 'right', opposite: 'left' },
-                    { dx: 0, dy: 1, wall: 'bottom', opposite: 'top' },
-                    { dx: -1, dy: 0, wall: 'left', opposite: 'right' }
-                ];
+<div class="modal-bg" id="rptModal">
+    <div class="modal-box">
+        <div class="modal-hd"><h2><i class="fas fa-file-lines"></i> Reporte de Conteo</h2><button class="modal-x" onclick="closeMod()"><i class="fas fa-xmark"></i></button></div>
+        <div class="modal-bd"><div class="rpt" id="rptCont"></div></div>
+        <div class="modal-ft">
+            <button class="btn btn-s" onclick="closeMod()"><i class="fas fa-xmark"></i> Cerrar</button>
+            <button class="btn btn-pr" onclick="printRpt()"><i class="fas fa-print"></i> Imprimir</button>
+            <button class="btn btn-pf" onclick="dlPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+        </div>
+    </div>
+</div>
 
-                for (const d of dirs) {
-                    const nx = current.x + d.dx;
-                    const ny = current.y + d.dy;
-                    if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !grid[ny][nx].visited) {
-                        neighbors.push({ x: nx, y: ny, wall: d.wall, opposite: d.opposite });
-                    }
-                }
+<div id="printArea"></div>
+<div class="toast-c" id="toastC"></div>
 
-                if (neighbors.length > 0) {
-                    const chosen = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    grid[current.y][current.x][chosen.wall] = false;
-                    grid[chosen.y][chosen.x][chosen.opposite] = false;
-                    grid[chosen.y][chosen.x].visited = true;
-                    stack.push({ x: chosen.x, y: chosen.y });
-                } else {
-                    stack.pop();
-                }
-            }
+<script>
+// ====================================================
+// BASE DE DATOS - EXACTAMENTE los 158 productos enviados
+// Sin códigos OP, solo nombre, min, max, unidad por defecto
+// Unidades: Pza=piezas, Kg=kilos, L=litros
+// ====================================================
+const DB=[
+{c:"Proteinas",clr:"#c0392b",ico:"fa-drumstick-bite",items:[
+{n:"Carne Para Hamburguesas",mn:1000,mx:1200,u:"Pza"},
+{n:"Pollo Hamburguesa",mn:160,mx:200,u:"Pza"},
+{n:"Tenders De Pollo",mn:168,mx:210,u:"Pza"},
+{n:"Alitas",mn:168,mx:210,u:"Pza"},
+{n:"Tocino Ahumado Premium Nacional",mn:12,mx:15,u:"Kg"},
+{n:"Pulled Pork Taiwanes",mn:1.65,mx:3.30,u:"Kg"}
+]},
+{c:"Quesos y Embutidos",clr:"#e67e22",ico:"fa-cheese",items:[
+{n:"Queso Americano",mn:4838.40,mx:6048,u:"Pza"},
+{n:"Queso Pepper Jack",mn:25,mx:64,u:"Pza"},
+{n:"Queso Provolone",mn:25,mx:64,u:"Pza"},
+{n:"Mortadela con Pistache Rebanada",mn:2,mx:4,u:"Pza"}
+]},
+{c:"Panes y Harinas",clr:"#b8860b",ico:"fa-bread-slice",items:[
+{n:"Pan Brioche - Bimbo",mn:3600,mx:4500,u:"Pza"},
+{n:"Harina Gallito (Produccion)",mn:22.40,mx:28,u:"Kg"},
+{n:"Cocoa En Polvo",mn:1.60,mx:2,u:"Kg"}
+]},
+{c:"Papas",clr:"#d4880f",ico:"fa-seedling",items:[
+{n:"Papa Corte Recto",mn:316.80,mx:396,u:"Kg"},
+{n:"Papa Corte Espiral",mn:34.85,mx:43.56,u:"Kg"}
+]},
+{c:"Salsas (Produccion)",clr:"#e74c3c",ico:"fa-pepper-hot",items:[
+{n:"Salsa De Queso (Produccion)",mn:20,mx:25,u:"Kg"},
+{n:"Salsa Hood Sauce (Produccion)",mn:1.68,mx:2.10,u:"Kg"},
+{n:"Salsa Bufalo (Produccion)",mn:2.24,mx:2.80,u:"Kg"},
+{n:"Salsa Korean Spicy (Produccion)",mn:1.68,mx:2.10,u:"Kg"},
+{n:"Salsa Tonkatsu (Produccion)",mn:.96,mx:1.20,u:"Kg"},
+{n:"Salsa Bbq Chipotle (Produccion)",mn:.96,mx:1.20,u:"Kg"},
+{n:"Salsa Bbq Ciruela Piña (Produccion)",mn:.96,mx:1.20,u:"Kg"},
+{n:"Salsa Mango Habanero (Produccion)",mn:1.68,mx:2.10,u:"Kg"}
+]},
+{c:"Aderezos y Mermeladas (Produccion)",clr:"#9b59b6",ico:"fa-jar",items:[
+{n:"Aderezo De Ajo (Produccion)",mn:76.80,mx:96,u:"Kg"},
+{n:"Aderezo Ranch (Produccion)",mn:6.40,mx:8,u:"Kg"},
+{n:"Aderezo Blue Cheese (Produccion)",mn:6.40,mx:8,u:"Kg"},
+{n:"Aderezo Garlic Parmesan (Produccion)",mn:6.40,mx:8,u:"Kg"},
+{n:"Aderezo Tartara (Produccion)",mn:2.80,mx:3.50,u:"Kg"},
+{n:"Aderezo Sambal (Produccion)",mn:1.68,mx:2.10,u:"Kg"},
+{n:"Aderezo Especial (Produccion)",mn:28.80,mx:36,u:"Kg"},
+{n:"Mermelada De Tocino (Produccion)",mn:128,mx:160,u:"Kg"},
+{n:"Mermelada De Serrano (Produccion)",mn:24,mx:30,u:"Kg"}
+]},
+{c:"Condimentos y Conservas",clr:"#8e44ad",ico:"fa-bottle-droplet",items:[
+{n:"Pepinillos Taiwaneses",mn:.50,mx:1,u:"Kg"},
+{n:"Pepinillos En Salmuera (Produccion)",mn:48,mx:60,u:"Kg"},
+{n:"Frasco De Chiles Serranos (Produccion)",mn:19.20,mx:24,u:"Pza"},
+{n:"Chiles Serranos",mn:12,mx:15,u:"Kg"},
+{n:"Ajonjoli Negro",mn:.16,mx:.20,u:"Kg"},
+{n:"Sal Refinada",mn:.80,mx:1,u:"Kg"},
+{n:"Pimienta Martajada Con Sal (Produccion)",mn:2.40,mx:3,u:"Kg"},
+{n:"Catsup Sobre Mex Heinz",mn:4800,mx:6000,u:"Pza"},
+{n:"Mostaza Sobre Heinz",mn:2400,mx:3000,u:"Pza"},
+{n:"Mayonesa Sobre Heinz",mn:2400,mx:3000,u:"Pza"},
+{n:"Mayonesa Bao Bao",mn:.50,mx:1,u:"Kg"},
+{n:"Mayo Pickles (Bolsa de 1 Kg)",mn:1,mx:2,u:"Kg"}
+]},
+{c:"Verduras",clr:"#27ae60",ico:"fa-leaf",items:[
+{n:"Cebolla Jumbo",mn:32,mx:40,u:"Kg"},
+{n:"Col Blanca",mn:1.60,mx:2,u:"Kg"},
+{n:"Col Morada",mn:1.60,mx:2,u:"Kg"}
+]},
+{c:"Lacteos y Postres",clr:"#2980b9",ico:"fa-ice-cream",items:[
+{n:"Leche Entera",mn:26.40,mx:33,u:"L"},
+{n:"Helado Mantecado",mn:35.88,mx:41.50,u:"L"},
+{n:"Malta Frosty Mix",mn:2.40,mx:3,u:"Kg"},
+{n:"Jarabe Hersheys",mn:2.82,mx:3.53,u:"Kg"},
+{n:"Jarabe Caramelo Kala",mn:1.60,mx:2,u:"Kg"},
+{n:"Rollo Para Malteada",mn:.80,mx:1,u:"Pza"}
+]},
+{c:"Aceites y Grasas",clr:"#b0b030",ico:"fa-oil-can",items:[
+{n:"Aceite Para Freir",mn:128,mx:160,u:"L"}
+]},
+{c:"Bebidas",clr:"#2c3e50",ico:"fa-glass-water",items:[
+{n:"Coca Normal",mn:288,mx:360,u:"Pza"},
+{n:"Coca Sin Azucar",mn:182.40,mx:228,u:"Pza"},
+{n:"Coca Light",mn:134.40,mx:168,u:"Pza"},
+{n:"Coca Vainilla",mn:38.40,mx:48,u:"Pza"},
+{n:"Coca Cherry",mn:38.40,mx:48,u:"Pza"},
+{n:"Fanta",mn:28.80,mx:36,u:"Pza"},
+{n:"Sprite",mn:48,mx:60,u:"Pza"},
+{n:"Mountain Dew Original",mn:38.40,mx:48,u:"Pza"},
+{n:"Ciel Mineral",mn:28.80,mx:36,u:"Pza"},
+{n:"Sidral Mundet",mn:96,mx:120,u:"Pza"},
+{n:"Delaware Punch",mn:38.40,mx:48,u:"Pza"},
+{n:"Root Beer",mn:28.80,mx:36,u:"Pza"},
+{n:"Felix Mandarina Colima",mn:57.60,mx:72,u:"Pza"},
+{n:"Felix Manzana Chihuahua",mn:57.60,mx:72,u:"Pza"},
+{n:"Velvet Soda Frambuesa",mn:50,mx:60,u:"Pza"},
+{n:"Velvet Soda Lychee",mn:40,mx:48,u:"Pza"},
+{n:"Velvet Soda Maracuya",mn:50,mx:60,u:"Pza"},
+{n:"Zoe Water",mn:38.40,mx:48,u:"Pza"},
+{n:"Bohemia Cristal",mn:19.20,mx:24,u:"Pza"},
+{n:"Bohemia Oscura",mn:19.20,mx:24,u:"Pza"}
+]},
+{c:"Galletas",clr:"#d35400",ico:"fa-cookie-bite",items:[
+{n:"Galleta Chubbies (Produccion)",mn:80,mx:100,u:"Pza"},
+{n:"Galleta Cortesia",mn:80,mx:100,u:"Pza"},
+{n:"Galleta Oreo",mn:224,mx:280,u:"Pza"}
+]},
+{c:"Vasos y Tapas",clr:"#16a085",ico:"fa-mug-hot",items:[
+{n:"Vaso 1 Oz",mn:2400,mx:3000,u:"Pza"},
+{n:"Vaso 2 Oz",mn:4000,mx:5000,u:"Pza"},
+{n:"Vaso 4 Oz",mn:320,mx:400,u:"Pza"},
+{n:"Vaso 8 Oz",mn:80,mx:100,u:"Pza"},
+{n:"Vaso Para Malteada 16 Oz",mn:240,mx:300,u:"Pza"},
+{n:"Tapa 1 Oz",mn:2400,mx:3000,u:"Pza"},
+{n:"Tapa 2 Oz",mn:4000,mx:5000,u:"Pza"},
+{n:"Tapa 4 Oz",mn:320,mx:400,u:"Pza"}
+]},
+{c:"Empaque y Desechables",clr:"#1abc9c",ico:"fa-box-open",items:[
+{n:"Foil Generico",mn:400,mx:1000,u:"Pza"},
+{n:"Foil Naranja",mn:600,mx:1000,u:"Pza"},
+{n:"Foil Negro",mn:200,mx:500,u:"Pza"},
+{n:"Foil Amarillo",mn:600,mx:1000,u:"Pza"},
+{n:"Foil Azul",mn:800,mx:1000,u:"Pza"},
+{n:"Bolsa Mini Chubbies",mn:1200,mx:1500,u:"Pza"},
+{n:"Bolsa Mini Muy Gallito",mn:240,mx:300,u:"Pza"},
+{n:"Bolsa Chica Chubbies",mn:640,mx:800,u:"Pza"},
+{n:"Bolsa Chica Muy Gallito",mn:240,mx:300,u:"Pza"},
+{n:"Bolsa De Celofan",mn:2400,mx:3000,u:"Pza"},
+{n:"Caja Chubbies Mini",mn:240,mx:300,u:"Pza"},
+{n:"Caja Chubbies Chica",mn:240,mx:300,u:"Pza"},
+{n:"Caja Chica Muy Gallito",mn:160,mx:200,u:"Pza"},
+{n:"Caja Grande Muy Gallito",mn:160,mx:200,u:"Pza"},
+{n:"Papel Encerado Muy Gallito",mn:160,mx:200,u:"Pza"},
+{n:"Servilleta Generica Muy Gallito",mn:800,mx:1000,u:"Pza"},
+{n:"Servilleta Personalizada Chubbies",mn:4800,mx:6000,u:"Pza"},
+{n:"Charola Chica Para Papa",mn:2400,mx:3000,u:"Pza"},
+{n:"Charola Grande Para Papa",mn:240,mx:300,u:"Pza"},
+{n:"Charola Para Papa Curly",mn:160,mx:200,u:"Pza"},
+{n:"Popotes",mn:240,mx:300,u:"Pza"},
+{n:"Tenedor De Bambu",mn:800,mx:1000,u:"Pza"}
+]},
+{c:"Stickers y Etiquetas",clr:"#8e44ad",ico:"fa-tag",items:[
+{n:"Stickers Muy Gallito",mn:704,mx:1408,u:"Pza"},
+{n:"Sticker Korean Spicy",mn:19.20,mx:24,u:"Pza"},
+{n:"Etiqueta De Seguridad (Chubbies)",mn:800,mx:1000,u:"Pza"},
+{n:"Etiqueta De Seguridad (Muy Gallito)",mn:800,mx:1000,u:"Pza"},
+{n:"Sticker Hamburguesa Oinkster",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Hamburguesa Hood Chickn",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Ranch",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Blue Cheese",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Bufalo",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Hamburguesa Clasica",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Bbq Chipotle",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Bbq Ciruela Piña",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Garlic Parmesan",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Hood Sauce",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Hamburguesa Korean",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Mango Habanero",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Tonkatsu",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Hamburguesa Cheesy",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Mermelada De Serrano",mn:19.20,mx:24,u:"Pza"},
+{n:"Sticker Hamburguesa Serrano Jam",mn:19.20,mx:24,u:"Pza"}
+]},
+{c:"Limpieza e Higiene",clr:"#1abc9c",ico:"fa-spray-can-sparkles",items:[
+{n:"Bidon 10Lt De Desengrasante Industrial",mn:2.40,mx:3,u:"Pza"},
+{n:"Bidon 10Lt De Fabuloso",mn:2.40,mx:3,u:"Pza"},
+{n:"Bidon 10Lt Jabon Para Trastes",mn:2.40,mx:3,u:"Pza"},
+{n:"Bidon 10Lt De Cloro",mn:2.40,mx:3,u:"Pza"},
+{n:"Bidon 4Lt De Jabon Para Manos",mn:2.40,mx:3,u:"Pza"},
+{n:"Gel Antibacterial Bidon De 10 Lt",mn:.80,mx:1,u:"Pza"},
+{n:"Desinfectante Para Verduras",mn:.80,mx:1,u:"Pza"},
+{n:"Jabón En Polvo",mn:.80,mx:1,u:"Kg"},
+{n:"Sanitizante",mn:2.40,mx:3,u:"Pza"},
+{n:"Guantes Desechables",mn:800,mx:1000,u:"Pza"},
+{n:"Guantes Para Limpieza",mn:2.40,mx:3,u:"Pza"},
+{n:"Cofias",mn:160,mx:200,u:"Pza"},
+{n:"Cubrebocas",mn:160,mx:200,u:"Pza"},
+{n:"Esponja Para Trastes",mn:2.40,mx:3,u:"Pza"},
+{n:"Fibra Negra",mn:2.40,mx:3,u:"Pza"},
+{n:"Fibra Verde",mn:2.40,mx:3,u:"Pza"},
+{n:"Jergas",mn:2.40,mx:3,u:"Pza"},
+{n:"Trapo Microfibra (Azul)",mn:4.80,mx:6,u:"Pza"},
+{n:"Trapo Microfibra (Verde)",mn:4.80,mx:6,u:"Pza"},
+{n:"Trapo Microfibra (Blanco)",mn:2.40,mx:3,u:"Pza"},
+{n:"Bolsa Para Basura Chica",mn:16,mx:20,u:"Pza"},
+{n:"Bolsa Para Basura Grande",mn:24,mx:30,u:"Pza"},
+{n:"Diurex",mn:2.40,mx:3,u:"Pza"},
+{n:"Paquete De Sanitas",mn:16,mx:20,u:"Pza"}
+]},
+{c:"Papeleria y Varios",clr:"#7f8c8d",ico:"fa-pen",items:[
+{n:"Masking Tape",mn:2.40,mx:3,u:"Pza"},
+{n:"Rollo Termicos 80X70Mm",mn:40,mx:50,u:"Pza"},
+{n:"Grapas",mn:12000,mx:15000,u:"Pza"},
+{n:"Plumas",mn:2.40,mx:3,u:"Pza"},
+{n:"Plumon Negro",mn:2.40,mx:3,u:"Pza"},
+{n:"PLUMON AZUL (TICKETS)",mn:1,mx:2,u:"Pza"},
+{n:"Playo",mn:2.40,mx:3,u:"Pza"}
+]}
+];
 
-            return grid;
-        }
+const UNITS=["Pza","Kg","g","L","ml","Oz","Caja","Bolsa","Rollo","Paq"];
 
-        // ===================== DIBUJO =====================
-        function drawMaze() {
-            const cfg = CONFIG[currentLevel];
-            const cols = cfg.cols;
-            const rows = cfg.rows;
+// ====== Funciones ======
 
-            // Fondo
-            ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+function init(){document.getElementById('cDate').value=new Date().toISOString().split('T')[0];buildForm();renderHist()}
 
-            // Grid sutil
-            ctx.strokeStyle = 'rgba(124, 58, 237, 0.06)';
-            ctx.lineWidth = 1;
-            for (let y = 0; y <= rows; y++) {
-                ctx.beginPath();
-                ctx.moveTo(0, y * cellSize);
-                ctx.lineTo(cols * cellSize, y * cellSize);
-                ctx.stroke();
-            }
-            for (let x = 0; x <= cols; x++) {
-                ctx.beginPath();
-                ctx.moveTo(x * cellSize, 0);
-                ctx.lineTo(x * cellSize, rows * cellSize);
-                ctx.stroke();
-            }
+function fmtN(n){return n==null?'--':n.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:2})}
 
-            // Paredes
-            ctx.strokeStyle = '#7c3aed';
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = 'round';
+// Construir formulario
+function buildForm(){
+    const C=document.getElementById('invForm');C.innerHTML='';
+    let total=0;
+    DB.forEach((cat,ci)=>{
+        total+=cat.items.length;
+        const sec=document.createElement('div');sec.className='cat-sec';
+        sec.innerHTML=`<div class="cat-hd" onclick="togCat(${ci})"><div class="cat-dot" style="background:${cat.clr}"></div><span class="cat-nm"><i class="fas ${cat.ico}"></i> ${cat.c}</span><span class="cat-cnt" id="cc${ci}">${cat.items.length}</span><i class="fas fa-chevron-down ct" id="ct${ci}"></i></div><div class="cat-body" id="cb${ci}"></div>`;
+        C.appendChild(sec);
+        const body=sec.querySelector('.cat-body');
+        cat.items.forEach((p,pi)=>{body.insertAdjacentHTML('beforeend',mkRow(ci,pi,p))});
+    });
+    // Conectar eventos
+    C.querySelectorAll('input[type=number]').forEach(inp=>{
+        inp.addEventListener('input',()=>{updRow(inp);updStats()});
+    });
+    document.getElementById('sTotal').textContent=total;
+    updStats();
+}
 
-            for (let y = 0; y < rows; y++) {
-                for (let x = 0; x < cols; x++) {
-                    const cell = maze[y][x];
-                    const px = x * cellSize;
-                    const py = y * cellSize;
+function mkRow(ci,pi,p){
+    const opts=UNITS.map(u=>`<option value="${u}"${u===p.u?' selected':''}>${u}</option>`).join('');
+    return `<div class="prow" id="r${ci}_${pi}" data-name="${p.n.toLowerCase()}">
+        <div class="pn">${p.n}<div class="pr">Min: ${fmtN(p.mn)} / Max: ${fmtN(p.mx)}</div></div>
+        <span class="badge" id="b${ci}_${pi}">--</span>
+        <div class="igrp">
+            <input type="number" id="q${ci}_${pi}" min="0" step="0.01" placeholder="0" data-c="${ci}" data-p="${pi}">
+            <select class="usel" id="u${ci}_${pi}" data-c="${ci}" data-p="${pi}">${opts}</select>
+        </div>
+    </div>`;
+}
 
-                    if (cell.top) {
-                        ctx.beginPath();
-                        ctx.moveTo(px, py);
-                        ctx.lineTo(px + cellSize, py);
-                        ctx.stroke();
-                    }
-                    if (cell.right) {
-                        ctx.beginPath();
-                        ctx.moveTo(px + cellSize, py);
-                        ctx.lineTo(px + cellSize, py + cellSize);
-                        ctx.stroke();
-                    }
-                    if (cell.bottom) {
-                        ctx.beginPath();
-                        ctx.moveTo(px, py + cellSize);
-                        ctx.lineTo(px + cellSize, py + cellSize);
-                        ctx.stroke();
-                    }
-                    if (cell.left) {
-                        ctx.beginPath();
-                        ctx.moveTo(px, py);
-                        ctx.lineTo(px, py + cellSize);
-                        ctx.stroke();
-                    }
-                }
-            }
+// Actualizar color y badge de una fila
+function updRow(inp){
+    const ci=+inp.dataset.c, pi=+inp.dataset.p;
+    const row=document.getElementById(`r${ci}_${pi}`);
+    const badge=document.getElementById(`b${ci}_${pi}`);
+    const val=parseFloat(inp.value);
+    const p=DB[ci].items[pi];
 
-            // Meta (bandera)
-            const gx = goal.x * cellSize + cellSize / 2;
-            const gy = goal.y * cellSize + cellSize / 2;
-            const gr = cellSize * 0.32;
+    row.classList.remove('st-low','st-high','st-ok');
 
-            // Glow de la meta
-            const goalGlow = ctx.createRadialGradient(gx, gy, 0, gx, gy, gr * 2.5);
-            goalGlow.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
-            goalGlow.addColorStop(1, 'transparent');
-            ctx.fillStyle = goalGlow;
-            ctx.fillRect(gx - gr * 3, gy - gr * 3, gr * 6, gr * 6);
+    if(isNaN(val)||val===0){badge.textContent='--';badge.style.background='';badge.style.color='';return}
 
-            // Cuadrado meta
-            ctx.fillStyle = '#10b981';
-            ctx.shadowColor = '#10b981';
-            ctx.shadowBlur = 12;
-            ctx.fillRect(gx - gr, gy - gr, gr * 2, gr * 2);
-            ctx.shadowBlur = 0;
+    if(val<p.mn){
+        row.classList.add('st-low');badge.textContent='BAJO';badge.style.background='var(--red)';badge.style.color='#fff';
+    }else if(val>p.mx){
+        row.classList.add('st-high');badge.textContent='EXCESO';badge.style.background='var(--amber)';badge.style.color='#1a1a1a';
+    }else{
+        row.classList.add('st-ok');badge.textContent='OK';badge.style.background='var(--green)';badge.style.color='#fff';
+    }
+}
 
-            // Banderita
-            ctx.fillStyle = '#fff';
-            ctx.font = `${cellSize * 0.45}px sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('🏁', gx, gy);
-
-            // Pelota (jugador)
-            const bx = player.x * cellSize + cellSize / 2;
-            const by = player.y * cellSize + cellSize / 2;
-            const br = cellSize * 0.3;
-
-            // Glow pelota
-            const ballGlow = ctx.createRadialGradient(bx, by, 0, bx, by, br * 2.5);
-            ballGlow.addColorStop(0, `${cfg.color}66`);
-            ballGlow.addColorStop(1, 'transparent');
-            ctx.fillStyle = ballGlow;
-            ctx.beginPath();
-            ctx.arc(bx, by, br * 2.5, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Pelota
-            const ballGrad = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, br * 0.1, bx, by, br);
-            ballGrad.addColorStop(0, '#ffffff');
-            ballGrad.addColorStop(0.5, cfg.color);
-            ballGrad.addColorStop(1, darkenColor(cfg.color, 40));
-            ctx.fillStyle = ballGrad;
-            ctx.shadowColor = cfg.color;
-            ctx.shadowBlur = 15 + Math.sin(playerAnimOffset) * 5;
-            ctx.beginPath();
-            ctx.arc(bx, by, br, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-
-            // Brillo en la pelota
-            ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.beginPath();
-            ctx.arc(bx - br * 0.25, by - br * 0.25, br * 0.35, 0, Math.PI * 2);
-            ctx.fill();
-        }
-
-        function darkenColor(hex, amount) {
-            let r = parseInt(hex.slice(1, 3), 16);
-            let g = parseInt(hex.slice(3, 5), 16);
-            let b = parseInt(hex.slice(5, 7), 16);
-            r = Math.max(0, r - amount);
-            g = Math.max(0, g - amount);
-            b = Math.max(0, b - amount);
-            return `rgb(${r},${g},${b})`;
-        }
-
-        function animate() {
-            playerAnimOffset += 0.05;
-            drawMaze();
-            animFrame = requestAnimationFrame(animate);
-        }
-
-        // ===================== MOVIMIENTO =====================
-        function movePlayer(dx, dy) {
-            if (!gameActive) return;
-            const nx = player.x + dx;
-            const ny = player.y + dy;
-            const cfg = CONFIG[currentLevel];
-
-            if (nx < 0 || nx >= cfg.cols || ny < 0 || ny >= cfg.rows) return;
-
-            // Verificar paredes
-            const cell = maze[player.y][player.x];
-            if (dx === 1 && cell.right) return;
-            if (dx === -1 && cell.left) return;
-            if (dy === 1 && cell.bottom) return;
-            if (dy === -1 && cell.top) return;
-
-            player.x = nx;
-            player.y = ny;
-            moveCount++;
-            document.getElementById('moves').textContent = moveCount;
-
-            // ¿Ganó?
-            if (player.x === goal.x && player.y === goal.y) {
-                winGame();
-            }
-        }
-
-        // ===================== CONTROLES =====================
-        document.addEventListener('keydown', (e) => {
-            switch (e.key) {
-                case 'ArrowUp': case 'w': case 'W':
-                    e.preventDefault(); movePlayer(0, -1); break;
-                case 'ArrowDown': case 's': case 'S':
-                    e.preventDefault(); movePlayer(0, 1); break;
-                case 'ArrowLeft': case 'a': case 'A':
-                    e.preventDefault(); movePlayer(-1, 0); break;
-                case 'ArrowRight': case 'd': case 'D':
-                    e.preventDefault(); movePlayer(1, 0); break;
+// Actualizar estadísticas
+function updStats(){
+    let filled=0,low=0,high=0,ok=0,total=0;
+    DB.forEach((cat,ci)=>{
+        cat.items.forEach((p,pi)=>{
+            total++;
+            const inp=document.getElementById(`q${ci}_${pi}`);
+            if(inp&&inp.value&&parseFloat(inp.value)>0){
+                filled++;
+                const v=parseFloat(inp.value);
+                if(v<p.mn)low++;else if(v>p.mx)high++;else ok++;
             }
         });
+    });
+    const pct=total>0?(filled/total*100):0;
+    document.getElementById('pFill').style.width=pct+'%';
+    document.getElementById('pTxt').textContent=`${filled} / ${total}`;
+    document.getElementById('sOk').textContent=ok;
+    document.getElementById('sLow').textContent=low;
+    document.getElementById('sHigh').textContent=high;
+}
 
-        function handleMobileBtn(e, dir) {
-            e.preventDefault();
-            switch(dir) {
-                case 'up': movePlayer(0, -1); break;
-                case 'down': movePlayer(0, 1); break;
-                case 'left': movePlayer(-1, 0); break;
-                case 'right': movePlayer(1, 0); break;
-            }
-        }
+// Colapsar categoría
+function togCat(ci){
+    const body=document.getElementById(`cb${ci}`);
+    const tog=document.getElementById(`ct${ci}`);
+    body.classList.toggle('hide');
+    tog.style.transform=body.classList.contains('hide')?'rotate(-90deg)':'';
+}
 
-        // Swipe support
-        let touchStartX = 0, touchStartY = 0;
-        document.addEventListener('touchstart', (e) => {
-            if (e.target.closest('.mobile-btn') || e.target.closest('button')) return;
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
+// Buscador
+document.getElementById('searchInput').addEventListener('input',function(){
+    const q=this.value.toLowerCase().trim();
+    document.querySelectorAll('.prow').forEach(row=>{
+        const name=row.dataset.name||'';
+        row.classList.toggle('hidden',q!==''&&!name.includes(q));
+    });
+    // Mostrar/ocultar categorías vacías
+    DB.forEach((cat,ci)=>{
+        const body=document.getElementById(`cb${ci}`);
+        if(!body)return;
+        const visible=body.querySelectorAll('.prow:not(.hidden)');
+        const sec=body.closest('.cat-sec');
+        sec.style.display=visible.length===0&&q!==''?'none':'';
+    });
+});
 
-        document.addEventListener('touchend', (e) => {
-            if (e.target.closest('.mobile-btn') || e.target.closest('button')) return;
-            const dx = e.changedTouches[0].clientX - touchStartX;
-            const dy = e.changedTouches[0].clientY - touchStartY;
-            const absDx = Math.abs(dx);
-            const absDy = Math.abs(dy);
-            if (Math.max(absDx, absDy) < 20) return;
-            if (absDx > absDy) {
-                movePlayer(dx > 0 ? 1 : -1, 0);
-            } else {
-                movePlayer(0, dy > 0 ? 1 : -1);
-            }
-        }, { passive: true });
+// Recoger datos
+function collect(){
+    return{
+        date:document.getElementById('cDate').value,
+        resp:document.getElementById('cResp').value,
+        loc:document.getElementById('cLoc').value,
+        ts:new Date().toISOString(),
+        cats:DB.map((cat,ci)=>({
+            name:cat.c,clr:cat.clr,
+            items:cat.items.map((p,pi)=>{
+                const qi=document.getElementById(`q${ci}_${pi}`);
+                const ui=document.getElementById(`u${ci}_${pi}`);
+                const qty=qi?parseFloat(qi.value)||0:0;
+                const unit=ui?ui.value:p.u;
+                let status='--';
+                if(qty>0){if(qty<p.mn)status='BAJO';else if(qty>p.mx)status='EXCESO';else status='OK'}
+                return{n:p.n,mn:p.mn,mx:p.mx,qty,unit,status}
+            })
+        }))
+    };
+}
 
-        // ===================== TEMPORIZADOR =====================
-        function updateTimer() {
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-            const secs = String(elapsed % 60).padStart(2, '0');
-            document.getElementById('timer').textContent = `${mins}:${secs}`;
-        }
+// Guardar
+function saveCount(){
+    const d=collect();
+    if(!d.date){toast('Selecciona una fecha','err');return}
+    const hasAny=d.cats.some(c=>c.items.some(p=>p.qty>0));
+    if(!hasAny){toast('Ingresa al menos una cantidad','err');return}
+    let h=JSON.parse(localStorage.getItem('invHist')||'[]');
+    d.id='cnt_'+Date.now();
+    d.summary={
+        total:d.cats.reduce((s,c)=>s+c.items.length,0),
+        filled:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.qty>0).length,0),
+        low:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.status==='BAJO').length,0),
+        high:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.status==='EXCESO').length,0),
+        ok:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.status==='OK').length,0)
+    };
+    h.unshift(d);localStorage.setItem('invHist',JSON.stringify(h));
+    toast('Conteo guardado correctamente','ok');renderHist();
+}
 
-        // ===================== FLUJO DEL JUEGO =====================
-        function startGame(level) {
-            currentLevel = level;
-            const cfg = CONFIG[level];
-
-            // Generar laberinto
-            maze = generateMaze(cfg.cols, cfg.rows);
-
-            // Posiciones
-            player = { x: 0, y: 0 };
-            goal = { x: cfg.cols - 1, y: cfg.rows - 1 };
-
-            // Canvas
-            canvas = document.getElementById('mazeCanvas');
-            ctx = canvas.getContext('2d');
-
-            // Calcular tamaño del canvas
-            const maxSize = Math.min(window.innerWidth - 40, 520);
-            cellSize = Math.floor(maxSize / Math.max(cfg.cols, cfg.rows));
-            canvas.width = cfg.cols * cellSize;
-            canvas.height = cfg.rows * cellSize;
-
-            // UI
-            document.getElementById('levelLabel').textContent = cfg.label;
-            moveCount = 0;
-            document.getElementById('moves').textContent = '0';
-            document.getElementById('timer').textContent = '00:00';
-
-            // Mostrar juego
-            document.getElementById('menu').classList.add('hidden');
-            document.getElementById('winScreen').classList.add('hidden');
-            document.getElementById('game').classList.remove('hidden');
-            document.getElementById('game').classList.add('fade-in');
-
-            // Timer
-            startTime = Date.now();
-            if (timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(updateTimer, 1000);
-
-            gameActive = true;
-
-            // Animación
-            if (animFrame) cancelAnimationFrame(animFrame);
-            animate();
-        }
-
-        function winGame() {
-            gameActive = false;
-            clearInterval(timerInterval);
-            if (animFrame) cancelAnimationFrame(animFrame);
-
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const cfg = CONFIG[currentLevel];
-
-            // Calcular estrellas
-            let stars = 1;
-            if (elapsed <= cfg.starTime[0] && moveCount <= cfg.starMoves[0]) stars = 3;
-            else if (elapsed <= cfg.starTime[1] && moveCount <= cfg.starMoves[1]) stars = 2;
-
-            const mins = String(Math.floor(elapsed / 60)).padStart(2, '0');
-            const secs = String(elapsed % 60).padStart(2, '0');
-
-            document.getElementById('winLevel').textContent = cfg.label;
-            document.getElementById('winTime').textContent = `${mins}:${secs}`;
-            document.getElementById('winMoves').textContent = moveCount;
-            document.getElementById('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
-
-            const ratings = ['Puedes mejorar...', '¡Bien hecho!', '¡PERFECTO! 🏆'];
-            document.getElementById('winRating').textContent = ratings[stars - 1];
-
-            // Mostrar pantalla de victoria
-            document.getElementById('game').classList.add('hidden');
-            document.getElementById('winScreen').classList.remove('hidden');
-            document.getElementById('winScreen').classList.add('fade-in');
-
-            // Confeti
-            launchConfetti();
-        }
-
-        function restartLevel() {
-            if (currentLevel) startGame(currentLevel);
-        }
-
-        function backToMenu() {
-            gameActive = false;
-            if (timerInterval) clearInterval(timerInterval);
-            if (animFrame) cancelAnimationFrame(animFrame);
-
-            document.getElementById('game').classList.add('hidden');
-            document.getElementById('winScreen').classList.add('hidden');
-            document.getElementById('menu').classList.remove('hidden');
-            document.getElementById('menu').classList.add('fade-in');
-
-            // Limpiar confeti
-            document.getElementById('confettiContainer').innerHTML = '';
-        }
-
-        // ===================== CONFETI =====================
-        function launchConfetti() {
-            const container = document.getElementById('confettiContainer');
-            container.innerHTML = '';
-            const colors = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
-            const emojis = ['🎉', '🎊', '✨', '🌟', '💫', '🏆'];
-
-            for (let i = 0; i < 60; i++) {
-                const confetti = document.createElement('div');
-                const isEmoji = Math.random() > 0.6;
-
-                if (isEmoji) {
-                    confetti.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-                    confetti.style.fontSize = (12 + Math.random() * 16) + 'px';
-                } else {
-                    confetti.style.width = (6 + Math.random() * 8) + 'px';
-                    confetti.style.height = (6 + Math.random() * 8) + 'px';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                }
-
-                confetti.style.position = 'absolute';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.top = '-20px';
-                confetti.style.opacity = '1';
-                confetti.style.pointerEvents = 'none';
-
-                const duration = 2 + Math.random() * 3;
-                const delay = Math.random() * 1.5;
-                const rotEnd = Math.random() * 720 - 360;
-                const xDrift = (Math.random() - 0.5) * 200;
-
-                confetti.style.animation = `confettiFall ${duration}s ${delay}s ease-out forwards`;
-                confetti.style.setProperty('--x-drift', xDrift + 'px');
-                confetti.style.setProperty('--rot-end', rotEnd + 'deg');
-
-                container.appendChild(confetti);
-            }
-
-            // Inject keyframes if not done yet
-            if (!document.getElementById('confettiStyle')) {
-                const style = document.createElement('style');
-                style.id = 'confettiStyle';
-                style.textContent = `
-                    @keyframes confettiFall {
-                        0% { transform: translateY(0) translateX(0) rotate(0deg); opacity: 1; }
-                        100% { transform: translateY(100vh) translateX(var(--x-drift)) rotate(var(--rot-end)); opacity: 0; }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-        }
-
-        // Resize handler
-        window.addEventListener('resize', () => {
-            if (gameActive && currentLevel) {
-                const cfg = CONFIG[currentLevel];
-                const maxSize = Math.min(window.innerWidth - 40, 520);
-                cellSize = Math.floor(maxSize / Math.max(cfg.cols, cfg.rows));
-                canvas.width = cfg.cols * cellSize;
-                canvas.height = cfg.rows * cellSize;
-            }
+// Limpiar
+function clearAll(){
+    confirm2('¿Limpiar todos los campos del conteo actual?').then(y=>{
+        if(!y)return;
+        document.querySelectorAll('#invForm input[type=number]').forEach(inp=>{
+            inp.value='';const row=inp.closest('.prow');
+            row.classList.remove('st-low','st-high','st-ok');
+            const badge=row.querySelector('.badge');badge.textContent='--';badge.style.background='';badge.style.color='';
         });
-    </script>
+        document.getElementById('cResp').value='';document.getElementById('cLoc').value='';
+        updStats();toast('Campos limpiados','ok');
+    });
+}
+
+// Confirmación sin alert/confirm
+function confirm2(msg){
+    return new Promise(res=>{
+        const ov=document.createElement('div');
+        ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center';
+        ov.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:22px 24px;max-width:340px;text-align:center"><i class="fas fa-triangle-exclamation" style="font-size:1.6rem;color:var(--accent);margin-bottom:10px"></i><p style="color:var(--fg);font-size:.86rem;margin-bottom:14px">${msg}</p><div style="display:flex;gap:7px"><button class="btn btn-s" style="flex:1" id="cfN">Cancelar</button><button class="btn btn-d" style="flex:1" id="cfY">Confirmar</button></div></div>`;
+        document.body.appendChild(ov);
+        ov.querySelector('#cfY').onclick=()=>{ov.remove();res(true)};
+        ov.querySelector('#cfN').onclick=()=>{ov.remove();res(false)};
+    });
+}
+
+// ====== Reporte ======
+function genReport(saved){
+    const d=saved||collect();
+    const ds=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}):'Sin fecha';
+    let tot=0,fill=0,low=0,high=0,ok=0,rows='';
+    d.cats.forEach(cat=>{
+        rows+=`<tr class="cr"><td colspan="6"><i class="fas fa-circle" style="font-size:6px;color:${cat.clr};margin-right:4px"></i>${cat.name}</td></tr>`;
+        cat.items.forEach(p=>{
+            tot++;
+            let qd,sc='co';
+            if(p.qty>0){
+                fill++;
+                if(p.status==='BAJO'||p.qty<p.mn){sc='cl';low++}
+                else if(p.status==='EXCESO'||p.qty>p.mx){sc='ch';high++}
+                else{ok++}
+                qd=`<span class="${sc}">${fmtN(p.qty)}</span>`;
+            }else{qd='<span class="ev">--</span>'}
+            const stTxt=p.qty>0?(p.qty<p.mn?'<span style="color:#c0392b">BAJO</span>':p.qty>p.mx?'<span style="color:#d4880f">EXCESO</span>':'<span style="color:#3ab876">OK</span>'):'';
+            rows+=`<tr><td style="padding-left:16px">${p.n}</td><td style="text-align:right">${fmtN(p.mn)}</td><td style="text-align:right">${fmtN(p.mx)}</td><td style="text-align:center">${p.unit}</td><td style="text-align:right">${qd}</td><td style="text-align:center;font-size:.66rem">${stTxt}</td></tr>`;
+        });
+    });
+    document.getElementById('rptCont').innerHTML=`
+        <div class="rh"><h2>CONTEO FISICO DE INVENTARIO</h2>
+        <div class="rm"><span><strong>Fecha:</strong> ${ds}</span><span><strong>Responsable:</strong> ${d.resp||'No asignado'}</span><span><strong>Sede:</strong> ${d.loc||'No asignada'}</span></div></div>
+        <table><thead><tr><th>Producto</th><th style="text-align:right">Min</th><th style="text-align:right">Max</th><th style="text-align:center">Unidad</th><th style="text-align:right">Cantidad</th><th style="text-align:center">Estado</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr class="tr"><td colspan="2">Total: ${tot} | Contados: ${fill}</td><td>OK: ${ok}</td><td>Bajo: ${low}</td><td style="text-align:right">Exceso: ${high}</td><td style="text-align:center">${Math.round(fill/tot*100)}%</td></tr></tfoot></table>`;
+    document.getElementById('rptModal').classList.add('show');
+}
+
+function closeMod(){document.getElementById('rptModal').classList.remove('show')}
+function printRpt(){
+    const c=document.getElementById('rptCont').innerHTML;
+    const pa=document.getElementById('printArea');
+    pa.innerHTML=`<div class="rpt" style="padding:14px;font-family:'DM Sans',sans-serif;color:#1a1a1a">${c}</div>`;
+    pa.style.display='block';window.print();setTimeout(()=>{pa.style.display='none'},800);
+}
+function dlPDF(){
+    const dv=document.getElementById('cDate').value||'sin_fecha';
+    html2pdf().set({margin:[8,8,8,8],filename:`conteo_inventario_${dv}.pdf`,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'letter',orientation:'portrait'}}).from(document.getElementById('rptCont')).save();
+    toast('PDF generado','ok');
+}
+
+// ====== Historial ======
+function renderHist(){
+    const C=document.getElementById('histCont');
+    const h=JSON.parse(localStorage.getItem('invHist')||'[]');
+    if(!h.length){C.innerHTML='<div class="empty"><i class="fas fa-clock-rotate-left"></i><h3>Sin registros</h3><p>Guarda un conteo para verlo aqui</p></div>';return}
+    C.innerHTML='<div class="hlist">'+h.map((item,i)=>{
+        const dt=new Date(item.ts).toLocaleDateString('es-MX',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        const s=item.summary||{};
+        return`<div class="hcard" onclick="viewHist(${i})"><div class="hico"><i class="fas fa-clipboard-check"></i></div><div class="hinfo"><h4>${item.date||'Sin fecha'}</h4><p>${item.resp||'Sin responsable'} · ${item.loc||'Sin sede'} · ${s.filled||0}/${s.total||0} contados · ${s.low||0} bajo · ${s.high||0} exceso</p></div><div class="hacts"><button onclick="event.stopPropagation();loadHist(${i})" title="Cargar"><i class="fas fa-upload"></i></button><button class="del" onclick="event.stopPropagation();delHist(${i})" title="Eliminar"><i class="fas fa-trash"></i></button></div></div>`
+    }).join('')+'</div>';
+}
+
+function viewHist(i){const h=JSON.parse(localStorage.getItem('invHist')||'[]');if(h[i])genReport(h[i])}
+
+function loadHist(i){
+    const h=JSON.parse(localStorage.getItem('invHist')||'[]');const item=h[i];if(!item)return;
+    document.getElementById('cDate').value=item.date||'';
+    document.getElementById('cResp').value=item.resp||'';
+    document.getElementById('cLoc').value=item.loc||'';
+    item.cats.forEach((cat,ci)=>{
+        if(!DB[ci])return;
+        cat.items.forEach((p,pi)=>{
+            if(!DB[ci].items[pi])return;
+            const qi=document.getElementById(`q${ci}_${pi}`);
+            const ui=document.getElementById(`u${ci}_${pi}`);
+            if(qi){qi.value=p.qty>0?p.qty:'';updRow(qi)}
+            if(ui)ui.value=p.unit;
+        });
+    });
+    updStats();
+    // Cambiar a tab conteo
+    document.querySelectorAll('.tab-btn').forEach(t=>t.classList.remove('on'));
+    document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('on'));
+    document.querySelector('[data-tab=conteo]').classList.add('on');
+    document.getElementById('p-conteo').classList.add('on');
+    toast('Registro cargado','ok');
+}
+
+function delHist(i){
+    confirm2('¿Eliminar este registro del historial?').then(y=>{
+        if(!y)return;
+        let h=JSON.parse(localStorage.getItem('invHist')||'[]');
+        h.splice(i,1);localStorage.setItem('invHist',JSON.stringify(h));
+        renderHist();toast('Registro eliminado','ok');
+    });
+}
+
+// ====== Navegación tabs ======
+document.querySelectorAll('.tab-btn').forEach(t=>{
+    t.addEventListener('click',()=>{
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+        document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('on'));
+        t.classList.add('on');
+        document.getElementById('p-'+t.dataset.tab).classList.add('on');
+        if(t.dataset.tab==='historial')renderHist();
+    });
+});
+
+// ====== Toast ======
+function toast(msg,type='ok'){
+    const C=document.getElementById('toastC');
+    const t=document.createElement('div');t.className=`toast ${type}`;
+    const ic=type==='ok'?'fa-check-circle':'fa-exclamation-circle';
+    t.innerHTML=`<i class="fas ${ic}"></i><span>${msg}</span>`;
+    C.appendChild(t);setTimeout(()=>t.remove(),3100);
+}
+
+// Cerrar modal
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMod()});
+document.getElementById('rptModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeMod()});
+
+// Iniciar
+init();
+</script>
 </body>
 </html>
