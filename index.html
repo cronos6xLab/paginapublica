@@ -336,7 +336,7 @@
             <h1>Conteo Fisico de Inventario<span class="dot">.</span></h1>
             <p>Registra paquetes + piezas sueltas · El total se calcula automaticamente</p>
         </div>
-        <span class="badge-top">v2.1 / LIVE</span>
+        <span class="badge-top">v2.2 / LIVE</span>
     </header>
 
     <div class="top-row">
@@ -394,9 +394,16 @@
 
 <script>
 // ====================================================
-// BASE DE DATOS — Basada en la imagen del inventario
-// pp = PORCIONES O PIEZAS por paquete (columna del Excel)
-// sp = multiplicador de piezas sueltas (default 1, 0.05 para aderezos/salsas)
+// 🔗 WEBHOOK MAKE.COM — REEMPLAZA ESTA URL POR LA TUYA
+//    Flujo: Custom webhook → Google Sheets "Add a Row"
+//    Ej: https://hook.us1.make.com/abc123xyz...
+// ====================================================
+const MAKE_WEBHOOK_URL = 'https://hook.us1.make.com/REEMPLAZA_ESTA_URL';
+
+// ====================================================
+// BASE DE DATOS
+// pp = PORCIONES O PIEZAS por paquete
+// sp = multiplicador de piezas sueltas (default 1, 0.05 aderezos/salsas)
 // total = paquetes × pp + sueltas × sp
 // ====================================================
 const DB=[
@@ -531,6 +538,71 @@ const DB=[
 {n:"Servicios Hechos",pres:"PIEZA",pp:1,u:"Pza"}
 ]}
 ];
+
+// ====================================================
+// 🌐 ENVÍO AL WEBHOOK DE MAKE.COM
+//   - URLSearchParams → application/x-www-form-urlencoded
+//   - keepalive: true (no bloquea navegación)
+//   - Sin await, sin FormData, sin no-cors
+//   - Todos los valores como STRINGS planos
+//   - Falla silenciosa: nunca rompe la UX
+// ====================================================
+function sendToMake(d){
+    try{
+        const params = new URLSearchParams();
+        params.append('test',            'true');
+        params.append('origen',          'conteo_inventario_web');
+        params.append('fecha',           String(d.date || ''));
+        params.append('responsable',     String(d.resp || ''));
+        params.append('sede',            String(d.loc || ''));
+        params.append('timestamp',       String(d.ts || new Date().toISOString()));
+        params.append('total_productos', String(d.summary?.total || 0));
+        params.append('contados',        String(d.summary?.filled || 0));
+        params.append('pendientes',      String((d.summary?.total || 0) - (d.summary?.filled || 0)));
+        params.append('unidades_totales',String(d.summary?.units || 0));
+
+        // Detalle completo en un solo campo JSON (1 fila por conteo)
+        const detalle = [];
+        d.cats.forEach(cat => {
+            cat.items.forEach(p => {
+                if (p.paq > 0 || p.sue > 0) {
+                    detalle.push({
+                        categoria:    String(cat.name || ''),
+                        producto:     String(p.n || ''),
+                        presentacion: String(p.pres || ''),
+                        paquetes:     String(p.paq || 0),
+                        sueltas:      String(p.sue || 0),
+                        total:        String(p.total || 0),
+                        unidad:       String(p.u || '')
+                    });
+                }
+            });
+        });
+        params.append('conteo_json', JSON.stringify(detalle));
+
+        // Campos planos por producto (columnas fijas en Sheets)
+        detalle.forEach((it, i) => {
+            const k = 'item_' + i + '_';
+            params.append(k + 'categoria',    it.categoria);
+            params.append(k + 'producto',     it.producto);
+            params.append(k + 'presentacion', it.presentacion);
+            params.append(k + 'paquetes',     it.paquetes);
+            params.append(k + 'sueltas',      it.sueltas);
+            params.append(k + 'total',        it.total);
+            params.append(k + 'unidad',       it.unidad);
+        });
+
+        // Fire & forget — NO await, silencio total si falla
+        fetch(MAKE_WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+            body: params.toString(),
+            keepalive: true
+        }).catch(() => {});
+    }catch(e){
+        // Silencio absoluto: el conteo local ya se guardó
+    }
+}
 
 function init(){
     document.getElementById('cDate').value=new Date().toISOString().split('T')[0];
@@ -689,6 +761,10 @@ function saveCount(){
         units:Math.round(d.cats.reduce((s,c)=>s+c.items.reduce((a,p)=>a+p.total,0),0))
     };
     h.unshift(d);localStorage.setItem('invHist',JSON.stringify(h));
+
+    // 📤 Envío al webhook de Make — sin await, sin bloquear la UI
+    sendToMake(d);
+
     toast('Conteo guardado correctamente','ok');renderHist();
 }
 
