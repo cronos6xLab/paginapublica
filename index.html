@@ -427,6 +427,10 @@
         font-weight:700;
         letter-spacing:.08em;
     }
+    .ppres .tag-sp{
+        color:#f39c12;
+        border-color:rgba(243,156,18,.55);
+    }
 
     .pinputs{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
     .icell{display:flex;flex-direction:column;gap:4px}
@@ -915,9 +919,9 @@
         <div class="ico"><i class="fas fa-clipboard-check"></i></div>
         <div class="htxt">
             <h1>Conteo Fisico de Inventario<span class="dot">.</span></h1>
-            <p>Registra paquetes + piezas sueltas · El total se calcula automaticamente</p>
+            <p>Paquetes + piezas sueltas · Aderezos/salsas ×50g · Mermeladas y salsa de queso ×112g</p>
         </div>
-        <span class="badge-top">v2.1 / LIVE</span>
+        <span class="badge-top">v2.2 / LIVE</span>
     </header>
 
     <div class="top-row">
@@ -982,21 +986,24 @@ const WEBHOOK_URL = "https://hook.us2.make.com/69chaktduhr1qz7zikar87v5jon295tl"
 // ====================================================
 
 // ====================================================
-// BASE DE DATOS
-// pp = piezas por paquete (multiplo para calcular el total)
+// BASE DE DATOS — CATEGORÍAS SEGÚN IMAGEN
+// pp = piezas por paquete (multiplicador para calcular el total)
 // sp = multiplicador para piezas sueltas (default 1)
+//    · Aderezos y salsas: 0.05 (50 g)
+//    · Mermeladas y salsa de queso: 0.112 (112 g)
+//    · Foil: paquete de 500 piezas
 // total = paquetes × pp + sueltas × sp
 // ====================================================
 const DB=[
-{c:"Proteinas y Papas",clr:"#c0392b",ico:"fa-drumstick-bite",items:[
-{n:"Carne Para Hamburguesas",pres:"CHAROLA DE 84 PZ DE 140gr C/U",pp:84,u:"Pza"},
+{c:"General",clr:"#27ae60",ico:"fa-utensils",items:[
+{n:"Carne Para Hamburguesas",pres:"CHAROLA DE 84 Pz DE 140g C/U",pp:84,u:"Pza"},
+{n:"Pan",pres:"REBANADA CON 20 Pz",pp:20,u:"Pza"},
 {n:"Papas (Corte Recto)",pres:"CAJA CON 6 BOLSAS 13K 460gr/140gr",pp:6,u:"Bolsa"},
 {n:"Papas Curvy (Corte Espiral)",pres:"CAJA CON 6 BOLSAS 10.89Kg",pp:6,u:"Bolsa"},
 {n:"Queso Americano",pres:"PAQUETE 72 Pz",pp:72,u:"Pza"},
-{n:"Frasco De Chiles Serranos",pres:"BOLSA DE 2.5Kg (16gr/porcion)",pp:1,u:"Bolsa"},
-{n:"Cebolla Jumbo",pres:"KILO",pp:1,u:"Kg"}
-]},
-{c:"Pollos y Complementos",clr:"#d4880f",ico:"fa-drumstick-bite",items:[
+{n:"Chiles Serranos",pres:"BOLSA DE 2.5 Kg (4gr/porcion)",pp:2.5,u:"Kg"},
+{n:"Frasco De Chiles Serranos",pres:"CAJA CON 12 Pz",pp:12,u:"Pza"},
+{n:"Cebolla Jumbo",pres:"KILO",pp:1,u:"Kg"},
 {n:"Pollo Hamburguesa",pres:"PAQUETE DE 2 PIEZAS",pp:2,u:"Pza"},
 {n:"Tenders De Pollo",pres:"PAQUETE DE 6 PIEZAS",pp:6,u:"Pza"},
 {n:"Alitas",pres:"BOLSA DE 6 PIEZAS",pp:6,u:"Pza"},
@@ -1005,20 +1012,16 @@ const DB=[
 {n:"Ajonjoli Negro",pres:"PAQUETE 100g",pp:0.1,u:"Kg"},
 {n:"Desinfectante Para Verduras",pres:"PIEZA",pp:1,u:"Pza"}
 ]},
-{c:"Helados y Galletas",clr:"#c0392b",ico:"fa-ice-cream",items:[
+{c:"Procesado Salsas y Aderezos",clr:"#e74c3c",ico:"fa-jar",items:[
 {n:"Helado Mantecado",pres:"BOTE 3.450 Kg (240G)",pp:3.45,u:"Kg"},
 {n:"Galleta Chubbies (Produccion)",pres:"PIEZA",pp:1,u:"Pza"},
-{n:"Galleta Cortesia",pres:"PIEZA",pp:1,u:"Pza"}
-]},
-{c:"Aderezos Base (Produccion)",clr:"#9b59b6",ico:"fa-jar",items:[
+{n:"Galleta Cortesia",pres:"PIEZA",pp:1,u:"Pza"},
 {n:"Aderezo De Ajo",pres:"BOLSA 3 Lt (60gr por porcion)",pp:3,u:"L",sp:0.05},
-{n:"Aderezo Especial",pres:"BOLSA 3 Lt",pp:3,u:"L",sp:0.05},
-{n:"Mermelada De Tocino",pres:"BOLSA 20 Kg (20gr porcion)",pp:20,u:"Kg",sp:0.05},
+{n:"Aderezo Especial",pres:"BOLSA 3 Lt (60gr por porcion)",pp:3,u:"L",sp:0.05},
+{n:"Mermelada De Tocino",pres:"BOLSA 20 Kg (20gr porcion)",pp:20,u:"Kg",sp:0.112},
 {n:"Pepinillos En Salmuera",pres:"BOLSA 4 Kg (20gr porcion)",pp:4,u:"Kg",sp:0.05},
-{n:"Salsa De Queso",pres:"BOLSA 1 Lt (115gr por porcion)",pp:1,u:"L",sp:0.05},
-{n:"Tocino Ahumado Premium Nacional",pres:"BOLSA 3 Kg (60gr por porcion)",pp:3,u:"Kg",sp:0.05}
-]},
-{c:"Aderezos (Paquetes)",clr:"#e74c3c",ico:"fa-pepper-hot",items:[
+{n:"Salsa De Queso",pres:"BOLSA 1 Lt (115gr por porcion)",pp:1,u:"L",sp:0.112},
+{n:"Tocino Ahumado Premium Nacional",pres:"BOLSA 3 Kg (60gr porcion)",pp:3,u:"Kg",sp:0.05},
 {n:"Aderezo Blue Cheese",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",sp:0.05},
 {n:"Aderezo Garlic Parmesan",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",sp:0.05},
 {n:"Aderezo Ranch",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",sp:0.05},
@@ -1027,22 +1030,27 @@ const DB=[
 {n:"Salsa Bbq Chipotle",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",sp:0.05},
 {n:"Salsa Bbq Ciruela Piña",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",sp:0.05},
 {n:"Salsa Bufalo",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
-{n:"Salsa Mango Habanero",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
 {n:"Salsa Hood",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Salsa Mango Habanero",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Salsa Korean Spicy",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
 {n:"Salsa Tonkatsu",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",sp:0.05},
-{n:"Mermelada De Serrano",pres:"PAQUETE 2 KG (60G por porcion)",pp:2,u:"Kg",sp:0.05}
+{n:"Mermelada De Serrano",pres:"PAQUETE 2 KG (60G por porcion)",pp:2,u:"Kg",sp:0.112}
 ]},
-{c:"Insumos y Conservas",clr:"#27ae60",ico:"fa-bottle-droplet",items:[
-{n:"Queso Manchego Empanizado",pres:"BOLSA DE 15 PZ DE 60 GR",pp:15,u:"Pza"},
+{c:"Embutidos",clr:"#c0392b",ico:"fa-cheese",items:[
+{n:"Queso Manchego Empanizado",pres:"BOLSA DE 15 Pz DE 60 GR",pp:15,u:"Pza"},
 {n:"Doritos",pres:"BOLSA DE 58 grs",pp:1,u:"Bolsa"},
-{n:"Queso Pepper Jack",pres:"PAQUETE DE 92 PZ",pp:92,u:"Pza"},
+{n:"Queso Pepper Jack",pres:"PAQUETE DE 92 Pz",pp:92,u:"Pza"},
 {n:"Queso Provolone",pres:"PAQUETE 92 Pz",pp:92,u:"Pza"},
 {n:"Jalapeña Fresca",pres:"BIDON 20 LITROS",pp:20,u:"L"},
+{n:"Aceite Para Freir",pres:"BIDON 20 LITROS",pp:20,u:"L"},
 {n:"Mayonesa Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza"},
 {n:"Catsup Sobre Mex Heinz",pres:"CAJA 1000 Pz",pp:1000,u:"Pza"},
-{n:"Mostaza Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza"},
+{n:"Mostaza Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza"}
+]},
+{c:"Abarrotes",clr:"#d4880f",ico:"fa-boxes-stacked",items:[
 {n:"Leche Entera 3%",pres:"PIEZA 1 LT (140 ml)",pp:1,u:"Pza"},
-{n:"Malta Frosty Mix",pres:"PAQUETES (100 gr)",pp:1,u:"Paq"},
+{n:"Galleta Oreo",pres:"1.2Kg (20g porcion)",pp:1.2,u:"Kg"},
+{n:"Leche Malteada Mix",pres:"PAQUETE 750g (100g porcion)",pp:0.75,u:"Kg"},
 {n:"Jarabe Hersheys",pres:"PIEZA 3.1 Kg",pp:1,u:"Pza"},
 {n:"Jarabe Caramelo Kala",pres:"BOTELLA DE 1 LT",pp:1,u:"Bot"},
 {n:"Cocoa En Polvo",pres:"BOLSA DE 1 KG",pp:1,u:"Bolsa"},
@@ -1053,7 +1061,7 @@ const DB=[
 {n:"Mayonesa En Bote",pres:"BOTE CON 3.4 Kg",pp:3.4,u:"Kg"},
 {n:"Vinagre",pres:"BOTELLA 6 LT",pp:6,u:"L"}
 ]},
-{c:"Bebidas",clr:"#2c3e50",ico:"fa-glass-water",items:[
+{c:"Refrescos",clr:"#2980b9",ico:"fa-glass-water",items:[
 {n:"Coca Cherry",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
 {n:"Coca Vainilla",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
 {n:"Mountain Dew",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
@@ -1065,6 +1073,7 @@ const DB=[
 {n:"Felix Guayaba",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
 {n:"Bohemia Cristal",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
 {n:"Bohemia Oscura",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"A&W",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
 {n:"Velvet Soda Frambuesa",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
 {n:"Velvet Soda Maracuya",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
 {n:"Velvet Soda Lychee",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
@@ -1077,7 +1086,7 @@ const DB=[
 {n:"Coca Light",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
 {n:"Agua Mineral",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"}
 ]},
-{c:"Bolsas y Cajas",clr:"#16a085",ico:"fa-bag-shopping",items:[
+{c:"Empaque",clr:"#8e44ad",ico:"fa-bag-shopping",items:[
 {n:"Bolsa Mini Chubbies",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
 {n:"Bolsa Chica Chubbies",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
 {n:"Bolsa Mini Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
@@ -1086,9 +1095,7 @@ const DB=[
 {n:"Caja Chubbies Chica",pres:"CAJA 300 Pz",pp:300,u:"Pza"},
 {n:"Caja Chubbies Mini",pres:"CAJA 200 Pz",pp:200,u:"Pza"},
 {n:"Caja Chica Muy Gallito",pres:"CAJA 200 Pz",pp:200,u:"Pza"},
-{n:"Caja Grande Muy Gallito",pres:"PAQUETE 300 Pz",pp:300,u:"Pza"}
-]},
-{c:"Charolas y Etiquetas",clr:"#2980b9",ico:"fa-tag",items:[
+{n:"Caja Grande Muy Gallito",pres:"PAQUETE 300 Pz",pp:300,u:"Pza"},
 {n:"Charola Chica Para Papa",pres:"PAQUETE DE 500 PZ",pp:500,u:"Pza"},
 {n:"Charola Grande Para Papa",pres:"PAQUETE DE 50 PZ",pp:50,u:"Pza"},
 {n:"Charola Para Papa Curly",pres:"PAQUETE DE 50 PZ",pp:50,u:"Pza"},
@@ -1096,16 +1103,14 @@ const DB=[
 {n:"Etiqueta De Seguridad (Muy Gallito)",pres:"PAQUETE DE 1000 PZ",pp:1000,u:"Pza"},
 {n:"Servilleta Personalizada Chubbies",pres:"PAQUETE DE 250 Pz",pp:250,u:"Pza"},
 {n:"Servilleta Generica Muy Gallito",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
-{n:"Papel Encerado Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"}
-]},
-{c:"Foil",clr:"#d35400",ico:"fa-scroll",items:[
+{n:"Papel Encerado Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
 {n:"Foil Azul",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
-{n:"Foil Amarillo",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"},
-{n:"Foil Naranja",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"},
-{n:"Foil Negro",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"},
-{n:"Foil Muy Gallito",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"}
+{n:"Foil Amarillo",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
+{n:"Foil Naranja",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
+{n:"Foil Negro",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
+{n:"Foil Muy Gallito",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"}
 ]},
-{c:"Vasos y Desechables",clr:"#1abc9c",ico:"fa-mug-hot",items:[
+{c:"Desechables",clr:"#16a085",ico:"fa-mug-hot",items:[
 {n:"Vaso 1 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
 {n:"Tapa 1 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
 {n:"Vaso 2 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
@@ -1133,6 +1138,16 @@ function fmtN(n){
     return num.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:2});
 }
 
+// Muestra el multiplicador de piezas sueltas en gramos si aplica
+function spTag(p){
+    if(p.sp==null||p.sp===1)return '';
+    if(p.u==='L'||p.u==='Kg'){
+        const g=p.sp*1000;
+        return `<span class="tag tag-sp">×${fmtN(g)} g/PZ</span>`;
+    }
+    return `<span class="tag tag-sp">×${fmtN(p.sp)} ${p.u}/PZ</span>`;
+}
+
 function buildForm(){
     const C=document.getElementById('invForm');C.innerHTML='';
     let total=0;
@@ -1158,6 +1173,7 @@ function buildForm(){
 function mkRow(ci,pi,p){
     const presText=p.pres||'';
     const ppTag=p.pp!==1?`<span class="tag">${fmtN(p.pp)} ${p.u}/PAQ</span>`:'';
+    const spT=spTag(p);
     return `<div class="prow" id="r${ci}_${pi}" data-name="${p.n.toLowerCase()} ${presText.toLowerCase()}">
         <div class="pinfo">
             <div class="pname">${p.n}</div>
@@ -1165,6 +1181,7 @@ function mkRow(ci,pi,p){
                 <i class="fas fa-cube"></i>
                 <span>${presText}</span>
                 ${ppTag}
+                ${spT}
             </div>
         </div>
         <div class="pinputs">
