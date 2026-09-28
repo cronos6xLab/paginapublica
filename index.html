@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Conteo Fisico de Inventario</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,12 +10,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
-    /* ============================================================
-       FOUNDRY STYLE — dark canvas, monospace chrome, sharp corners
-       Accent: ember green (replaces orange #ff4d00 -> #55C800)
-       ============================================================ */
     :root{
-        /* Foundry neutrals */
         --canvas:#121212;
         --canvas-2:#171717;
         --canvas-3:#1c1c1c;
@@ -24,38 +19,36 @@
         --soot:#3a3a3a;
         --ash:#747474;
 
-        /* Ember GREEN (accent) — replaces #ff4d00 */
         --ember:#55C800;
         --ember-2:#48aa00;
         --ember-3:#3c8c00;
         --ember-soft:rgba(85,200,0,.12);
         --ember-line:rgba(85,200,0,.55);
 
-        /* Status colors */
         --red:#ef4444;
-        --amber:#f59e0b;
-        --ok:#22c55e;
 
-        /* Border hairlines — chalk at low opacity */
         --hair:rgba(226,232,240,.14);
         --hair-strong:rgba(226,232,240,.28);
         --hair-softer:rgba(226,232,240,.08);
 
-        /* Radii — signature sharp */
         --r-sm:2.8px;
         --r-lg:8px;
 
-        /* Motion — brisk */
         --ease:cubic-bezier(0,0,.2,1);
         --dur:.2s;
 
-        /* Fonts */
         --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
         --sans:'Inter',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     }
 
     *{margin:0;padding:0;box-sizing:border-box}
     html,body{height:100%}
+    /* Prevent iOS double-tap zoom & text-size adjust */
+    html{
+        -webkit-text-size-adjust:100%;
+        text-size-adjust:100%;
+        touch-action:manipulation;
+    }
     body{
         font-family:var(--mono);
         background:var(--canvas);
@@ -66,9 +59,16 @@
         font-size:14px;
         line-height:1.4;
         letter-spacing:-.005em;
+        touch-action:manipulation;
+        overscroll-behavior-y:none;
     }
 
-    /* ============ BACKGROUND (subtle ember glow, no texture) ============ */
+    /* Prevent iOS zoom: all tappable/input elements must be >=16px and manipulate */
+    input,select,textarea,button,.btn,.tab-btn{
+        font-size:16px;
+        touch-action:manipulation;
+    }
+
     .bg-fx{
         position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
         background:
@@ -76,16 +76,14 @@
             radial-gradient(700px 500px at 100% 100%, rgba(85,200,0,.025), transparent 60%),
             var(--canvas);
     }
-    .bg-fx .o{display:none}
 
-    /* ============ LAYOUT ============ */
     .wrap{
         position:relative;z-index:1;
         max-width:1200px;margin:0 auto;
         padding:20px 20px 130px;
     }
 
-    /* ============ HEADER — Foundry title block ============ */
+    /* ============ HEADER ============ */
     header{
         display:flex;align-items:flex-start;gap:18px;
         padding:22px 22px 22px;
@@ -143,7 +141,7 @@
         align-self:flex-start;
     }
 
-    /* ============ TOP FORM (metadata strip) ============ */
+    /* ============ TOP FORM ============ */
     .top-row{
         display:flex;gap:0;flex-wrap:wrap;
         margin-bottom:20px;
@@ -178,16 +176,16 @@
         padding:4px 0 6px;
         color:var(--bone);
         font-family:var(--mono);
-        font-size:13px;
+        font-size:16px;
         outline:none;
         border-radius:0;
         transition:border-color var(--dur) var(--ease);
     }
     .top-row input:hover{border-bottom-color:var(--hair-strong)}
     .top-row input:focus{border-bottom-color:var(--ember)}
-    .top-row input::placeholder{color:var(--soot);font-size:12px}
+    .top-row input::placeholder{color:var(--soot);font-size:13px}
 
-    /* ============ STATS STRIP ============ */
+    /* ============ STATS ============ */
     .stats-bar{
         display:grid;
         grid-template-columns:repeat(4,1fr);
@@ -212,6 +210,7 @@
         font-weight:700;
         line-height:1;
         letter-spacing:-.02em;
+        color:var(--ember);
     }
     .stat-card .lbl{
         font-family:var(--mono);
@@ -222,10 +221,6 @@
         margin-top:8px;
         font-weight:400;
     }
-    .stat-card.s-total .num{color:var(--ember)}
-    .stat-card.s-ok .num{color:var(--ok)}
-    .stat-card.s-low .num{color:var(--red)}
-    .stat-card.s-high .num{color:var(--amber)}
 
     /* ============ PROGRESS ============ */
     .prog-wrap{
@@ -261,26 +256,6 @@
         width:0%;
     }
 
-    /* ============ LEGEND ============ */
-    .legend{
-        display:flex;gap:22px;flex-wrap:wrap;
-        margin-bottom:20px;
-        padding:11px 18px;
-        background:transparent;
-        border:1px solid var(--hair);
-        border-radius:var(--r-lg);
-        font-family:var(--mono);
-        font-size:11px;
-        color:var(--ash);
-        text-transform:uppercase;
-        letter-spacing:.06em;
-        font-weight:400;
-    }
-    .legend i{margin-right:6px;font-size:8px;vertical-align:middle}
-    .lg-red{color:var(--red)}
-    .lg-amber{color:var(--amber)}
-    .lg-ok{color:var(--ok)}
-
     /* ============ SEARCH ============ */
     .search-bar{position:relative;margin-bottom:20px}
     .search-bar input{
@@ -291,7 +266,7 @@
         border-radius:var(--r-lg);
         color:var(--bone);
         font-family:var(--mono);
-        font-size:13px;
+        font-size:16px;
         outline:none;
         letter-spacing:.01em;
         transition:border-color var(--dur) var(--ease), background var(--dur) var(--ease);
@@ -302,14 +277,14 @@
         color:var(--soot);
         text-transform:uppercase;
         letter-spacing:.06em;
-        font-size:11px;
+        font-size:13px;
     }
     .search-bar .si{
         position:absolute;left:15px;top:50%;transform:translateY(-50%);
         color:var(--ash);font-size:.8rem;pointer-events:none;
     }
 
-    /* ============ TABS — tag-like nav ============ */
+    /* ============ TABS ============ */
     .tabs{
         display:flex;gap:6px;margin-bottom:22px;
         padding:0;
@@ -318,7 +293,7 @@
         border-radius:0;
     }
     .tab-btn{
-        padding:9px 16px;
+        padding:10px 16px;
         background:transparent;
         border:1px solid var(--hair);
         border-radius:var(--r-sm);
@@ -332,6 +307,7 @@
         transition:all var(--dur) var(--ease);
         white-space:nowrap;
         display:inline-flex;align-items:center;gap:7px;
+        touch-action:manipulation;
     }
     .tab-btn i{font-size:.7rem}
     .tab-btn:hover{
@@ -348,7 +324,7 @@
     .tpanel.on{display:block}
     @keyframes fi{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
-    /* ============ CATEGORY SECTION ============ */
+    /* ============ CATEGORY ============ */
     .cat-sec{
         margin-bottom:16px;
         background:var(--canvas-2);
@@ -403,7 +379,7 @@
     .cat-body{padding:12px 12px 4px;transition:opacity var(--dur) var(--ease)}
     .cat-body.hide{display:none}
 
-    /* ============ PRODUCT ROW — flat, hairline-bordered ============ */
+    /* ============ PRODUCT ROW ============ */
     .prow{
         display:flex;align-items:center;gap:14px;
         padding:12px 14px;
@@ -419,24 +395,6 @@
         background:rgba(255,255,255,.02);
         border-color:var(--hair-strong);
         border-left-color:var(--hair-strong);
-    }
-    .prow.st-low{
-        border-left-color:var(--red);
-    }
-    .prow.st-low .badge{
-        color:var(--red);border-color:var(--red);
-    }
-    .prow.st-high{
-        border-left-color:var(--amber);
-    }
-    .prow.st-high .badge{
-        color:var(--amber);border-color:var(--amber);
-    }
-    .prow.st-ok{
-        border-left-color:var(--ok);
-    }
-    .prow.st-ok .badge{
-        color:var(--ok);border-color:var(--ok);
     }
     .prow.hidden{display:none}
 
@@ -471,11 +429,6 @@
         font-weight:700;
         letter-spacing:.08em;
     }
-    .ppres .minmax{
-        color:var(--soot);
-        font-size:9.5px;
-        letter-spacing:.06em;
-    }
 
     .pinputs{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}
     .icell{display:flex;flex-direction:column;gap:4px}
@@ -489,40 +442,38 @@
         text-align:center;
     }
     .icell input{
-        width:70px;
+        width:80px;
         padding:8px 6px;
         background:var(--canvas);
         border:1px solid var(--hair);
         border-radius:var(--r-sm);
         color:var(--bone);
         font-family:var(--mono);
-        font-size:13px;
+        font-size:16px; /* Prevents iOS zoom */
         font-weight:700;
         text-align:center;
         outline:0;
-        transition:all var(--dur) var(--ease);
+        transition:border-color var(--dur) var(--ease), background var(--dur) var(--ease);
         -moz-appearance:textfield;
         letter-spacing:.02em;
+        touch-action:manipulation;
     }
     .icell input:hover{border-color:var(--hair-strong)}
     .icell input:focus{
         border-color:var(--ember);
         background:var(--canvas-3);
-        box-shadow:0 0 0 3px var(--ember-soft);
     }
     .icell input::placeholder{color:var(--soot);font-weight:400}
     .icell input::-webkit-inner-spin-button,
     .icell input::-webkit-outer-spin-button{-webkit-appearance:none}
 
-    /* Total box — outlined ember, no fill (Foundry CTA style) */
     .total-box{
         display:flex;flex-direction:column;align-items:center;justify-content:center;
         gap:1px;
-        padding:6px 12px;min-width:88px;
+        padding:6px 12px;min-width:90px;
         background:transparent;
         border:1px solid var(--ember-line);
         border-radius:var(--r-sm);
-        transition:all var(--dur) var(--ease);
     }
     .total-box .tlabel{
         font-family:var(--mono);
@@ -549,39 +500,12 @@
         letter-spacing:.08em;
         text-transform:uppercase;
     }
-    .prow.st-low .total-box{border-color:var(--red)}
-    .prow.st-low .total-box .tlabel,
-    .prow.st-low .total-box .tval,
-    .prow.st-low .total-box .tunit{color:var(--red)}
-    .prow.st-high .total-box{border-color:var(--amber)}
-    .prow.st-high .total-box .tlabel,
-    .prow.st-high .total-box .tval,
-    .prow.st-high .total-box .tunit{color:var(--amber)}
-    .prow.st-ok .total-box{border-color:var(--ok)}
-    .prow.st-ok .total-box .tlabel,
-    .prow.st-ok .total-box .tval,
-    .prow.st-ok .total-box .tunit{color:var(--ok)}
-
-    .badge{
-        font-family:var(--mono);
-        font-size:9.5px;
-        padding:4px 9px;
-        border-radius:var(--r-sm);
-        font-weight:700;
-        text-transform:uppercase;
-        letter-spacing:.14em;
-        background:transparent;
-        border:1px solid var(--hair);
-        color:var(--ash);
-        flex-shrink:0;white-space:nowrap;
-        transition:all var(--dur) var(--ease);
-        align-self:center;
-    }
 
     /* ============ ACTION BAR ============ */
     .act-bar{
         position:fixed;bottom:0;left:0;right:0;
         padding:16px 20px 18px;
+        padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px));
         background:linear-gradient(to top, var(--canvas) 60%, rgba(18,18,18,0));
         display:flex;gap:8px;flex-wrap:wrap;
         z-index:10;
@@ -590,7 +514,7 @@
     }
     .btn{
         display:inline-flex;align-items:center;gap:8px;
-        padding:11px 18px;
+        padding:12px 18px;
         border:1px solid transparent;
         border-radius:var(--r-sm);
         font-family:var(--mono);
@@ -599,14 +523,14 @@
         text-transform:uppercase;
         letter-spacing:.14em;
         cursor:pointer;
-        transition:all var(--dur) var(--ease);
+        transition:background var(--dur) var(--ease), color var(--dur) var(--ease), border-color var(--dur) var(--ease);
         background:transparent;
         color:var(--bone);
+        touch-action:manipulation;
     }
     .btn:active{transform:translateY(1px)}
     .btn i{font-size:.75rem}
 
-    /* Primary — bone white fill (inverted) */
     .btn-p{
         background:var(--bone);
         color:var(--canvas);
@@ -617,8 +541,6 @@
         border-color:var(--ember);
         color:var(--canvas);
     }
-
-    /* Secondary — ghost outline bone */
     .btn-s{
         background:transparent;
         color:var(--bone);
@@ -628,8 +550,6 @@
         border-color:var(--bone);
         color:var(--bone);
     }
-
-    /* Danger — outlined red */
     .btn-d{
         background:transparent;
         color:var(--red);
@@ -643,7 +563,7 @@
 
     .act-bar .btn{flex:1;min-width:120px;justify-content:center}
 
-    /* ============ MODAL — inverted bone panel ============ */
+    /* ============ MODAL ============ */
     .modal-bg{
         display:none;position:fixed;inset:0;
         background:rgba(0,0,0,.78);
@@ -682,7 +602,7 @@
     }
     .modal-hd h2 i{color:var(--ember);font-size:.9rem}
     .modal-x{
-        width:32px;height:32px;
+        width:34px;height:34px;
         background:transparent;
         border:1px solid var(--hair);
         border-radius:var(--r-sm);
@@ -690,6 +610,7 @@
         display:flex;align-items:center;justify-content:center;
         color:var(--ash);
         transition:all var(--dur) var(--ease);
+        touch-action:manipulation;
     }
     .modal-x:hover{border-color:var(--ember);color:var(--ember)}
     .modal-bd{padding:20px;max-height:66vh;overflow-y:auto}
@@ -759,8 +680,6 @@
     }
     .rpt tbody tr:hover td{background:rgba(255,255,255,.015)}
     .rpt .pres{font-size:9.5px;color:var(--ash);letter-spacing:.04em;text-transform:uppercase}
-    .rpt .cl{color:var(--red);font-weight:700}
-    .rpt .ch{color:var(--amber);font-weight:700}
     .rpt .co{color:var(--ember);font-weight:700}
     .rpt .ev{color:var(--soot);font-style:normal}
     .rpt .tr td{
@@ -786,6 +705,7 @@
         cursor:pointer;
         transition:all var(--dur) var(--ease);
         display:flex;align-items:center;gap:14px;
+        touch-action:manipulation;
     }
     .hcard:hover{
         background:rgba(255,255,255,.02);
@@ -819,12 +739,13 @@
     }
     .hacts{display:flex;gap:4px}
     .hacts button{
-        width:30px;height:30px;
+        width:32px;height:32px;
         background:transparent;
         border:1px solid var(--hair);
         border-radius:var(--r-sm);
         color:var(--ash);cursor:pointer;font-size:.72rem;
         transition:all var(--dur) var(--ease);
+        touch-action:manipulation;
     }
     .hacts button:hover{
         color:var(--ember);
@@ -875,7 +796,7 @@
     @keyframes moveinright{0%{opacity:0;transform:translateX(40px)}to{opacity:1;transform:translateX(0)}}
     @keyframes to{from{opacity:1}to{opacity:0;transform:translateX(20px)}}
 
-    /* ============ CONFIRM MODAL — reuse modal chrome ============ */
+    /* ============ CONFIRM ============ */
     .cfbox{
         background:var(--canvas-2);
         border:1px solid var(--hair-strong);
@@ -904,7 +825,7 @@
 
     /* ============ RESPONSIVE ============ */
     @media(max-width:720px){
-        .wrap{padding:14px 14px 120px}
+        .wrap{padding:14px 14px 130px}
         header{padding:18px}
         header .badge-top{display:none}
         .stats-bar{grid-template-columns:repeat(2,1fr)}
@@ -916,12 +837,12 @@
         .prow{flex-direction:column;align-items:stretch;gap:10px;padding:12px}
         .pinfo{flex:0 0 auto}
         .pinputs{justify-content:flex-start;width:100%}
-        .icell input{width:64px}
-        .total-box{min-width:80px}
+        .icell input{width:76px}
+        .total-box{min-width:84px}
         .modal-bd{padding:16px}
         .modal-hd,.modal-ft{padding:12px 16px}
-        .tab-btn{padding:8px 12px;font-size:10px}
-        .btn{padding:10px 14px;font-size:10px}
+        .tab-btn{padding:8px 12px;font-size:11px}
+        .btn{padding:11px 14px;font-size:11px}
         .act-bar{padding:12px 12px 14px;gap:6px}
         .act-bar .btn{min-width:90px}
         .rpt table{font-size:9.5px}
@@ -934,11 +855,9 @@
         header .ico{width:44px;height:44px;font-size:16px}
         .stat-card .num{font-size:1.3rem}
         .stat-card .lbl{font-size:9px}
-        .legend{gap:14px;font-size:10px}
-        .legend span:nth-child(2){display:none}
-        .icell input{width:56px;font-size:12px}
-        .total-box .tval{font-size:.9rem}
-        .hacts button{width:26px;height:26px}
+        .icell input{width:70px}
+        .total-box .tval{font-size:.95rem}
+        .hacts button{width:28px;height:28px}
         .hico{width:34px;height:34px;font-size:.75rem}
     }
     @media print{
@@ -954,8 +873,6 @@
         #printArea .rpt .cr td{background:#f0f0f0;color:#121212;border-bottom:1px solid #ccc}
         #printArea .rpt tbody td{color:#121212;border-bottom:1px solid #e0e0e0}
         #printArea .rpt .pres{color:#555}
-        #printArea .rpt .cl{color:#c0392b}
-        #printArea .rpt .ch{color:#b45309}
         #printArea .rpt .co{color:#3c8c00}
         #printArea .rpt .tr td{color:#121212;border-top:2px solid #121212}
     }
@@ -985,7 +902,7 @@
             <h1>Conteo Fisico de Inventario<span class="dot">.</span></h1>
             <p>Registra paquetes + piezas sueltas · El total se calcula automaticamente</p>
         </div>
-        <span class="badge-top">v1.0 / LIVE</span>
+        <span class="badge-top">v2.0 / LIVE</span>
     </header>
 
     <div class="top-row">
@@ -995,21 +912,15 @@
     </div>
 
     <div class="stats-bar">
-        <div class="stat-card s-total"><div class="num" id="sTotal">0</div><div class="lbl">Total Productos</div></div>
-        <div class="stat-card s-ok"><div class="num" id="sOk">0</div><div class="lbl">En Rango</div></div>
-        <div class="stat-card s-low"><div class="num" id="sLow">0</div><div class="lbl">Bajo Minimo</div></div>
-        <div class="stat-card s-high"><div class="num" id="sHigh">0</div><div class="lbl">Sobre Maximo</div></div>
+        <div class="stat-card"><div class="num" id="sTotal">0</div><div class="lbl">Total Productos</div></div>
+        <div class="stat-card"><div class="num" id="sFilled">0</div><div class="lbl">Contados</div></div>
+        <div class="stat-card"><div class="num" id="sPending">0</div><div class="lbl">Pendientes</div></div>
+        <div class="stat-card"><div class="num" id="sUnits">0</div><div class="lbl">Unidades</div></div>
     </div>
 
     <div class="prog-wrap">
         <div class="prog-lbl"><span>Progreso del conteo</span><strong id="pTxt">0 / 0</strong></div>
         <div class="prog-trk"><div class="prog-fill" id="pFill"></div></div>
-    </div>
-
-    <div class="legend">
-        <span><i class="fas fa-square lg-red"></i> Bajo minimo</span>
-        <span><i class="fas fa-square lg-amber"></i> Sobre maximo</span>
-        <span><i class="fas fa-square lg-ok"></i> En rango correcto</span>
     </div>
 
     <div class="search-bar">
@@ -1049,145 +960,145 @@
 
 <script>
 // ====================================================
-// BASE DE DATOS — Todos los productos del inventario
-// pp = piezas por paquete · total = paquetes × pp + sueltas
-// mn/mx estan en la unidad base
+// BASE DE DATOS
+// pp = piezas por paquete (multiplo para calcular el total)
+// sp = multiplicador para piezas sueltas (default 1)
+// total = paquetes × pp + sueltas × sp
 // ====================================================
 const DB=[
 {c:"Proteinas y Papas",clr:"#c0392b",ico:"fa-drumstick-bite",items:[
-{n:"Carne Para Hamburguesas",pres:"CHAROLA DE 84 PZ DE 140gr C/U",pp:84,u:"Pza",mn:1000,mx:1200},
-{n:"Papas (Corte Recto)",pres:"CAJA CON 6 BOLSAS 13K 460gr/140gr",pp:6,u:"Bolsa",mn:316.80,mx:396},
-{n:"Papas Curvy (Corte Espiral)",pres:"CAJA CON 6 BOLSAS 10.89Kg",pp:6,u:"Bolsa",mn:34.85,mx:43.56},
-{n:"Queso Americano",pres:"PAQUETE 72 Pz",pp:72,u:"Pza",mn:4838.40,mx:6048},
-{n:"Frasco De Chiles Serranos",pres:"BOLSA DE 2.5Kg (16gr/porcion)",pp:1,u:"Bolsa",mn:19.20,mx:24},
-{n:"Cebolla Jumbo",pres:"CAJA 12 Pz",pp:12,u:"Pza",mn:32,mx:40}
+{n:"Carne Para Hamburguesas",pres:"CHAROLA DE 84 PZ DE 140gr C/U",pp:84,u:"Pza"},
+{n:"Papas (Corte Recto)",pres:"CAJA CON 6 BOLSAS 13K 460gr/140gr",pp:6,u:"Bolsa"},
+{n:"Papas Curvy (Corte Espiral)",pres:"CAJA CON 6 BOLSAS 10.89Kg",pp:6,u:"Bolsa"},
+{n:"Queso Americano",pres:"PAQUETE 72 Pz",pp:72,u:"Pza"},
+{n:"Frasco De Chiles Serranos",pres:"BOLSA DE 2.5Kg (16gr/porcion)",pp:1,u:"Bolsa"},
+{n:"Cebolla Jumbo",pres:"KILO",pp:1,u:"Kg"}
 ]},
 {c:"Pollos y Complementos",clr:"#d4880f",ico:"fa-drumstick-bite",items:[
-{n:"Pollo Hamburguesa",pres:"PAQUETE DE 2 PIEZAS",pp:2,u:"Pza",mn:160,mx:200},
-{n:"Tenders De Pollo",pres:"PAQUETE DE 6 PIEZAS",pp:6,u:"Pza",mn:168,mx:210},
-{n:"Alitas",pres:"BOLSA DE 6 PIEZAS",pp:6,u:"Pza",mn:168,mx:210},
-{n:"Harina (Produccion)",pres:"PAQUETE DE 2 Kg",pp:2,u:"Kg",mn:22.40,mx:28},
-{n:"Col Blanca",pres:"PIEZA",pp:1,u:"Pza",mn:1.60,mx:2},
-{n:"Ajonjoli Negro",pres:"PAQUETE 100g",pp:0.1,u:"Kg",mn:0.16,mx:0.20},
-{n:"Desinfectante Para Verduras",pres:"PIEZA",pp:1,u:"Pza",mn:0.80,mx:1}
+{n:"Pollo Hamburguesa",pres:"PAQUETE DE 2 PIEZAS",pp:2,u:"Pza"},
+{n:"Tenders De Pollo",pres:"PAQUETE DE 6 PIEZAS",pp:6,u:"Pza"},
+{n:"Alitas",pres:"BOLSA DE 6 PIEZAS",pp:6,u:"Pza"},
+{n:"Harina (Produccion)",pres:"PAQUETE DE 2 Kg",pp:2,u:"Kg"},
+{n:"Col Blanca",pres:"PIEZA",pp:1,u:"Pza"},
+{n:"Ajonjoli Negro",pres:"PAQUETE 100g",pp:0.1,u:"Kg"},
+{n:"Desinfectante Para Verduras",pres:"PIEZA",pp:1,u:"Pza"}
 ]},
 {c:"Helados y Galletas",clr:"#c0392b",ico:"fa-ice-cream",items:[
-{n:"Helado Mantecado",pres:"BOTE 3.450 Kg (240G)",pp:3.45,u:"Kg",mn:35.88,mx:41.50},
-{n:"Galleta Chubbies (Produccion)",pres:"PIEZA",pp:1,u:"Pza",mn:80,mx:100},
-{n:"Galleta Cortesia",pres:"PIEZA",pp:1,u:"Pza",mn:80,mx:100}
+{n:"Helado Mantecado",pres:"BOTE 3.450 Kg (240G)",pp:3.45,u:"Kg"},
+{n:"Galleta Chubbies (Produccion)",pres:"PIEZA",pp:1,u:"Pza"},
+{n:"Galleta Cortesia",pres:"PIEZA",pp:1,u:"Pza"}
 ]},
 {c:"Aderezos Base (Produccion)",clr:"#9b59b6",ico:"fa-jar",items:[
-{n:"Aderezo De Ajo",pres:"BOLSA 3 Lt (60gr por porcion)",pp:3,u:"L",mn:76.80,mx:96},
-{n:"Aderezo Especial",pres:"BOLSA 3 Lt",pp:3,u:"L",mn:28.80,mx:36},
-{n:"Mermelada De Tocino",pres:"BOLSA 20 Kg (20gr porcion)",pp:20,u:"Kg",mn:128,mx:160},
-{n:"Pepinillos En Salmuera",pres:"BOLSA 4 Kg (20gr porcion)",pp:4,u:"Kg",mn:48,mx:60},
-{n:"Salsa De Queso",pres:"BOLSA 1 Lt (115gr por porcion)",pp:1,u:"L",mn:20,mx:25},
-{n:"Tocino Ahumado Premium Nacional",pres:"BOLSA 3 Kg (60gr por porcion)",pp:3,u:"Kg",mn:12,mx:15}
+{n:"Aderezo De Ajo",pres:"BOLSA 3 Lt (60gr por porcion)",pp:3,u:"L",sp:0.05},
+{n:"Aderezo Especial",pres:"BOLSA 3 Lt",pp:3,u:"L",sp:0.05},
+{n:"Mermelada De Tocino",pres:"BOLSA 20 Kg (20gr porcion)",pp:20,u:"Kg",sp:0.05},
+{n:"Pepinillos En Salmuera",pres:"BOLSA 4 Kg (20gr porcion)",pp:4,u:"Kg",sp:0.05},
+{n:"Salsa De Queso",pres:"BOLSA 1 Lt (115gr por porcion)",pp:1,u:"L",sp:0.05},
+{n:"Tocino Ahumado Premium Nacional",pres:"BOLSA 3 Kg (60gr por porcion)",pp:3,u:"Kg",sp:0.05}
 ]},
 {c:"Aderezos (Paquetes)",clr:"#e74c3c",ico:"fa-pepper-hot",items:[
-{n:"Aderezo Blue Cheese",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",mn:6.40,mx:8},
-{n:"Aderezo Garlic Parmesan",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",mn:6.40,mx:8},
-{n:"Aderezo Ranch",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",mn:6.40,mx:8},
-{n:"Aderezo Sambal",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",mn:1.68,mx:2.10},
-{n:"Aderezo Tartara",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",mn:2.80,mx:3.50},
-{n:"Salsa Bbq Chipotle",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",mn:0.96,mx:1.20},
-{n:"Salsa Bbq Ciruela Piña",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",mn:0.96,mx:1.20},
-{n:"Salsa Bufalo",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",mn:2.24,mx:2.80},
-{n:"Salsa Mango Habanero",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",mn:1.68,mx:2.10},
-{n:"Salsa Hood",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",mn:1.68,mx:2.10},
-{n:"Salsa Tonkatsu",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",mn:0.96,mx:1.20},
-{n:"Mermelada De Serrano",pres:"PAQUETE 2 KG (60G por porcion)",pp:2,u:"Kg",mn:24,mx:30}
+{n:"Aderezo Blue Cheese",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",sp:0.05},
+{n:"Aderezo Garlic Parmesan",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",sp:0.05},
+{n:"Aderezo Ranch",pres:"PAQUETE 2 LT (60G por porcion)",pp:2,u:"L",sp:0.05},
+{n:"Aderezo Sambal",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Aderezo Tartara",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Salsa Bbq Chipotle",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",sp:0.05},
+{n:"Salsa Bbq Ciruela Piña",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",sp:0.05},
+{n:"Salsa Bufalo",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Salsa Mango Habanero",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Salsa Hood",pres:"PAQUETE 0.7 LT (60G por porcion)",pp:0.7,u:"L",sp:0.05},
+{n:"Salsa Tonkatsu",pres:"PAQUETE 0.4 LT (60G por porcion)",pp:0.4,u:"L",sp:0.05},
+{n:"Mermelada De Serrano",pres:"PAQUETE 2 KG (60G por porcion)",pp:2,u:"Kg",sp:0.05}
 ]},
 {c:"Insumos y Conservas",clr:"#27ae60",ico:"fa-bottle-droplet",items:[
-{n:"Queso Manchego Empanizado",pres:"BOLSA DE 15 PZ DE 60 GR",pp:15,u:"Pza",mn:0,mx:0},
-{n:"Doritos",pres:"BOLSA DE 58 grs",pp:1,u:"Bolsa",mn:0,mx:0},
-{n:"Queso Pepper Jack",pres:"PAQUETE DE 92 PZ",pp:92,u:"Pza",mn:25,mx:64},
-{n:"Queso Provolone",pres:"PAQUETE 92 Pz",pp:92,u:"Pza",mn:25,mx:64},
-{n:"Jalapeña Fresca",pres:"BIDON 20 LITROS",pp:20,u:"L",mn:0,mx:0},
-{n:"Mayonesa Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza",mn:2400,mx:3000},
-{n:"Catsup Sobre Mex Heinz",pres:"CAJA 1000 Pz",pp:1000,u:"Pza",mn:4800,mx:6000},
-{n:"Mostaza Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza",mn:2400,mx:3000},
-{n:"Leche Entera 3%",pres:"PIEZA 1 LT (140 ml)",pp:1,u:"Pza",mn:26.40,mx:33},
-{n:"Malta Frosty Mix",pres:"PAQUETES (100 gr)",pp:1,u:"Paq",mn:2.40,mx:3},
-{n:"Jarabe Hersheys",pres:"PIEZA 3.1 Kg",pp:1,u:"Pza",mn:2.82,mx:3.53},
-{n:"Jarabe Caramelo Kala",pres:"BOTELLA DE 1 LT",pp:1,u:"Bot",mn:1.60,mx:2},
-{n:"Cocoa En Polvo",pres:"BOLSA DE 1 KG",pp:1,u:"Bolsa",mn:1.60,mx:2},
-{n:"Pimienta Martajada Con Sal",pres:"PAQUETE DE 200 gr",pp:0.2,u:"Kg",mn:2.40,mx:3},
-{n:"Sal Refinada",pres:"BOLSA 1 Kg",pp:1,u:"Kg",mn:0.80,mx:1},
-{n:"Catsup Polich",pres:"BOLSA 3.3 kg",pp:3.3,u:"Kg",mn:0,mx:0},
-{n:"Mostaza Bote",pres:"BOTE CON 3.8 Kg",pp:3.8,u:"Kg",mn:0,mx:0},
-{n:"Mayonesa En Bote",pres:"BOTE CON 3.4 Kg",pp:3.4,u:"Kg",mn:0,mx:0},
-{n:"Vinagre",pres:"BOTELLA 6 LT",pp:6,u:"L",mn:0,mx:0}
+{n:"Queso Manchego Empanizado",pres:"BOLSA DE 15 PZ DE 60 GR",pp:15,u:"Pza"},
+{n:"Doritos",pres:"BOLSA DE 58 grs",pp:1,u:"Bolsa"},
+{n:"Queso Pepper Jack",pres:"PAQUETE DE 92 PZ",pp:92,u:"Pza"},
+{n:"Queso Provolone",pres:"PAQUETE 92 Pz",pp:92,u:"Pza"},
+{n:"Jalapeña Fresca",pres:"BIDON 20 LITROS",pp:20,u:"L"},
+{n:"Mayonesa Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza"},
+{n:"Catsup Sobre Mex Heinz",pres:"CAJA 1000 Pz",pp:1000,u:"Pza"},
+{n:"Mostaza Sobre Heinz",pres:"CAJA 500 Pz",pp:500,u:"Pza"},
+{n:"Leche Entera 3%",pres:"PIEZA 1 LT (140 ml)",pp:1,u:"Pza"},
+{n:"Malta Frosty Mix",pres:"PAQUETES (100 gr)",pp:1,u:"Paq"},
+{n:"Jarabe Hersheys",pres:"PIEZA 3.1 Kg",pp:1,u:"Pza"},
+{n:"Jarabe Caramelo Kala",pres:"BOTELLA DE 1 LT",pp:1,u:"Bot"},
+{n:"Cocoa En Polvo",pres:"BOLSA DE 1 KG",pp:1,u:"Bolsa"},
+{n:"Pimienta Martajada Con Sal",pres:"PAQUETE DE 200 gr",pp:0.2,u:"Kg"},
+{n:"Sal Refinada",pres:"BOLSA 1 Kg",pp:1,u:"Kg"},
+{n:"Catsup Polich",pres:"BOLSA 3.3 kg",pp:3.3,u:"Kg"},
+{n:"Mostaza Bote",pres:"BOTE CON 3.8 Kg",pp:3.8,u:"Kg"},
+{n:"Mayonesa En Bote",pres:"BOTE CON 3.4 Kg",pp:3.4,u:"Kg"},
+{n:"Vinagre",pres:"BOTELLA 6 LT",pp:6,u:"L"}
 ]},
 {c:"Bebidas",clr:"#2c3e50",ico:"fa-glass-water",items:[
-{n:"Coca Cherry",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:38.40,mx:48},
-{n:"Coca Vainilla",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:38.40,mx:48},
-{n:"Mountain Dew",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:38.40,mx:48},
-{n:"Root Beer",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:28.80,mx:36},
-{n:"Felix Frambuesa",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:50,mx:60},
-{n:"Felix Maracuya",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:50,mx:60},
-{n:"Felix Mandarina",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:57.60,mx:72},
-{n:"Felix Manzana",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:57.60,mx:72},
-{n:"Felix Guayaba",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:0,mx:0},
-{n:"Bohemia Cristal",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:19.20,mx:24},
-{n:"Bohemia Oscura",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza",mn:19.20,mx:24},
-{n:"Velvet Soda Frambuesa",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:50,mx:60},
-{n:"Velvet Soda Maracuya",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:50,mx:60},
-{n:"Velvet Soda Lychee",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:40,mx:48},
-{n:"Fanta",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:28.80,mx:36},
-{n:"Delaware Punch",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:38.40,mx:48},
-{n:"Sprite",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:48,mx:60},
-{n:"Coca Sin Azucar",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:182.40,mx:228},
-{n:"Coca Normal",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:288,mx:360},
-{n:"Mundet",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:96,mx:120},
-{n:"Coca Light",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:134.40,mx:168},
-{n:"Agua Mineral",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza",mn:28.80,mx:36}
+{n:"Coca Cherry",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Coca Vainilla",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Mountain Dew",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Root Beer",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Felix Frambuesa",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Felix Maracuya",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Felix Mandarina",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Felix Manzana",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Felix Guayaba",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Bohemia Cristal",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Bohemia Oscura",pres:"PAQUETE DE 24 Pz",pp:24,u:"Pza"},
+{n:"Velvet Soda Frambuesa",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Velvet Soda Maracuya",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Velvet Soda Lychee",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Fanta",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Delaware Punch",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Sprite",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Coca Sin Azucar",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Coca Normal",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Mundet",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Coca Light",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"},
+{n:"Agua Mineral",pres:"PAQUETE DE 12 Pz",pp:12,u:"Pza"}
 ]},
 {c:"Bolsas y Cajas",clr:"#16a085",ico:"fa-bag-shopping",items:[
-{n:"Bolsa Mini Chubbies",pres:"PAQUETE 500 Pz",pp:500,u:"Pza",mn:1200,mx:1500},
-{n:"Bolsa Chica Chubbies",pres:"PAQUETE 100 Pz",pp:100,u:"Pza",mn:640,mx:800},
-{n:"Bolsa Mini Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza",mn:240,mx:300},
-{n:"Bolsa Chica Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza",mn:240,mx:300},
-{n:"Bolsa Para Servicio Celofan",pres:"PAQUETE 1000 Pz",pp:1000,u:"Pza",mn:2400,mx:3000},
-{n:"Caja Chubbies Chica",pres:"CAJA 300 Pz",pp:300,u:"Pza",mn:240,mx:300},
-{n:"Caja Chubbies Mini",pres:"CAJA 200 Pz",pp:200,u:"Pza",mn:240,mx:300},
-{n:"Caja Chica Muy Gallito",pres:"CAJA 200 Pz",pp:200,u:"Pza",mn:160,mx:200},
-{n:"Caja Grande Muy Gallito",pres:"PAQUETE 300 Pz",pp:300,u:"Pza",mn:160,mx:200}
+{n:"Bolsa Mini Chubbies",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
+{n:"Bolsa Chica Chubbies",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
+{n:"Bolsa Mini Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
+{n:"Bolsa Chica Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
+{n:"Bolsa Para Servicio Celofan",pres:"PAQUETE 1000 Pz",pp:1000,u:"Pza"},
+{n:"Caja Chubbies Chica",pres:"CAJA 300 Pz",pp:300,u:"Pza"},
+{n:"Caja Chubbies Mini",pres:"CAJA 200 Pz",pp:200,u:"Pza"},
+{n:"Caja Chica Muy Gallito",pres:"CAJA 200 Pz",pp:200,u:"Pza"},
+{n:"Caja Grande Muy Gallito",pres:"PAQUETE 300 Pz",pp:300,u:"Pza"}
 ]},
 {c:"Charolas y Etiquetas",clr:"#2980b9",ico:"fa-tag",items:[
-{n:"Charola Chica Para Papa",pres:"PAQUETE DE 500 PZ",pp:500,u:"Pza",mn:2400,mx:3000},
-{n:"Charola Grande Para Papa",pres:"PAQUETE DE 50 PZ",pp:50,u:"Pza",mn:240,mx:300},
-{n:"Charola Para Papa Curly",pres:"PAQUETE DE 50 PZ",pp:50,u:"Pza",mn:160,mx:200},
-{n:"Etiqueta De Seguridad (Chubbies)",pres:"PAQUETE DE 1000 PZ",pp:1000,u:"Pza",mn:800,mx:1000},
-{n:"Etiqueta De Seguridad (Muy Gallito)",pres:"PAQUETE DE 1000 PZ",pp:1000,u:"Pza",mn:800,mx:1000},
-{n:"Servilleta Personalizada Chubbies",pres:"PAQUETE DE 250 Pz",pp:250,u:"Pza",mn:4800,mx:6000},
-{n:"Servilleta Generica Muy Gallito",pres:"PAQUETE 500 Pz",pp:500,u:"Pza",mn:800,mx:1000},
-{n:"Papel Encerado Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza",mn:160,mx:200}
+{n:"Charola Chica Para Papa",pres:"PAQUETE DE 500 PZ",pp:500,u:"Pza"},
+{n:"Charola Grande Para Papa",pres:"PAQUETE DE 50 PZ",pp:50,u:"Pza"},
+{n:"Charola Para Papa Curly",pres:"PAQUETE DE 50 PZ",pp:50,u:"Pza"},
+{n:"Etiqueta De Seguridad (Chubbies)",pres:"PAQUETE DE 1000 PZ",pp:1000,u:"Pza"},
+{n:"Etiqueta De Seguridad (Muy Gallito)",pres:"PAQUETE DE 1000 PZ",pp:1000,u:"Pza"},
+{n:"Servilleta Personalizada Chubbies",pres:"PAQUETE DE 250 Pz",pp:250,u:"Pza"},
+{n:"Servilleta Generica Muy Gallito",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
+{n:"Papel Encerado Muy Gallito",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"}
 ]},
 {c:"Foil",clr:"#d35400",ico:"fa-scroll",items:[
-{n:"Foil Azul",pres:"PAQUETE 500 Pz",pp:500,u:"Pza",mn:800,mx:1000},
-{n:"Foil Amarillo",pres:"PAQUETE 250 Pz",pp:250,u:"Pza",mn:600,mx:1000},
-{n:"Foil Naranja",pres:"PAQUETE 250 Pz",pp:250,u:"Pza",mn:600,mx:1000},
-{n:"Foil Negro",pres:"PAQUETE 250 Pz",pp:250,u:"Pza",mn:200,mx:500},
-{n:"Foil Muy Gallito",pres:"PAQUETE 250 Pz",pp:250,u:"Pza",mn:0,mx:0}
+{n:"Foil Azul",pres:"PAQUETE 500 Pz",pp:500,u:"Pza"},
+{n:"Foil Amarillo",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"},
+{n:"Foil Naranja",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"},
+{n:"Foil Negro",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"},
+{n:"Foil Muy Gallito",pres:"PAQUETE 250 Pz",pp:250,u:"Pza"}
 ]},
 {c:"Vasos y Desechables",clr:"#1abc9c",ico:"fa-mug-hot",items:[
-{n:"Vaso 1 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza",mn:2400,mx:3000},
-{n:"Tapa 1 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza",mn:2400,mx:3000},
-{n:"Vaso 2 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza",mn:4000,mx:5000},
-{n:"Tapa 2 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza",mn:4000,mx:5000},
-{n:"Vaso 4 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza",mn:320,mx:400},
-{n:"Tapa 4 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza",mn:320,mx:400},
-{n:"Vaso 8 Oz",pres:"PAQUETE CON 50 Pz",pp:50,u:"Pza",mn:80,mx:100},
-{n:"Vaso Para Malteada 16 Oz",pres:"PAQUETE 50 Pz",pp:50,u:"Pza",mn:240,mx:300},
-{n:"Popotes",pres:"PAQUETE 100 Pz",pp:100,u:"Pza",mn:240,mx:300},
-{n:"Tenedor De Bambu",pres:"PAQUETE CON 500 Pz",pp:500,u:"Pza",mn:800,mx:1000},
-{n:"Rollo Para Malteada",pres:"PAQUETE PARA 1600 SELLADOS",pp:1600,u:"Pza",mn:0.80,mx:1},
-{n:"Servicios Hechos",pres:"PIEZA",pp:1,u:"Pza",mn:0,mx:0}
+{n:"Vaso 1 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
+{n:"Tapa 1 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
+{n:"Vaso 2 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
+{n:"Tapa 2 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
+{n:"Vaso 4 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
+{n:"Tapa 4 Oz",pres:"PAQUETE CON 100 Pz",pp:100,u:"Pza"},
+{n:"Vaso 8 Oz",pres:"PAQUETE CON 50 Pz",pp:50,u:"Pza"},
+{n:"Vaso Para Malteada 16 Oz",pres:"PAQUETE 50 Pz",pp:50,u:"Pza"},
+{n:"Popotes",pres:"PAQUETE 100 Pz",pp:100,u:"Pza"},
+{n:"Tenedor De Bambu",pres:"PAQUETE CON 500 Pz",pp:500,u:"Pza"},
+{n:"Rollo Para Malteada",pres:"PAQUETE PARA 1600 SELLADOS",pp:1600,u:"Pza"},
+{n:"Servicios Hechos",pres:"PIEZA",pp:1,u:"Pza"}
 ]}
 ];
 
-// ====== Init ======
 function init(){
     document.getElementById('cDate').value=new Date().toISOString().split('T')[0];
     buildForm();
@@ -1200,7 +1111,6 @@ function fmtN(n){
     return num.toLocaleString('es-MX',{minimumFractionDigits:0,maximumFractionDigits:2});
 }
 
-// ====== Build form ======
 function buildForm(){
     const C=document.getElementById('invForm');C.innerHTML='';
     let total=0;
@@ -1225,7 +1135,6 @@ function buildForm(){
 
 function mkRow(ci,pi,p){
     const presText=p.pres||'';
-    const minmax=(p.mn===0&&p.mx===0)?'SIN MIN/MAX':`MIN ${fmtN(p.mn)} / MAX ${fmtN(p.mx)} ${p.u}`;
     const ppTag=p.pp!==1?`<span class="tag">${fmtN(p.pp)} ${p.u}/PAQ</span>`:'';
     return `<div class="prow" id="r${ci}_${pi}" data-name="${p.n.toLowerCase()} ${presText.toLowerCase()}">
         <div class="pinfo">
@@ -1234,7 +1143,6 @@ function mkRow(ci,pi,p){
                 <i class="fas fa-cube"></i>
                 <span>${presText}</span>
                 ${ppTag}
-                <span class="minmax">${minmax}</span>
             </div>
         </div>
         <div class="pinputs">
@@ -1251,50 +1159,26 @@ function mkRow(ci,pi,p){
                 <span class="tval" id="tot${ci}_${pi}">0</span>
                 <span class="tunit">${p.u}</span>
             </div>
-            <span class="badge" id="b${ci}_${pi}">--</span>
         </div>
     </div>`;
 }
 
 function recalcRow(ci,pi){
-    const row=document.getElementById(`r${ci}_${pi}`);
-    if(!row)return;
     const qpaq=document.getElementById(`paq${ci}_${pi}`);
     const qsue=document.getElementById(`sue${ci}_${pi}`);
     const totEl=document.getElementById(`tot${ci}_${pi}`);
-    const badge=document.getElementById(`b${ci}_${pi}`);
     const p=DB[ci].items[pi];
 
     const paq=parseFloat(qpaq.value)||0;
     const sue=parseFloat(qsue.value)||0;
-    const total=(paq*p.pp)+sue;
+    const sp=p.sp!=null?p.sp:1;
+    const total=(paq*p.pp)+(sue*sp);
 
     totEl.textContent=total>0?fmtN(total):'0';
-
-    row.classList.remove('st-low','st-high','st-ok');
-
-    if(total<=0){
-        badge.textContent='--';
-        return;
-    }
-    if(p.mn===0&&p.mx===0){
-        badge.textContent='N/A';
-        return;
-    }
-    if(total<p.mn){
-        row.classList.add('st-low');
-        badge.textContent='BAJO';
-    } else if(total>p.mx){
-        row.classList.add('st-high');
-        badge.textContent='EXCESO';
-    } else {
-        row.classList.add('st-ok');
-        badge.textContent='OK';
-    }
 }
 
 function updStats(){
-    let filled=0,low=0,high=0,ok=0,total=0;
+    let filled=0,total=0,units=0;
     DB.forEach((cat,ci)=>{
         cat.items.forEach((p,pi)=>{
             total++;
@@ -1302,22 +1186,18 @@ function updStats(){
             const qsue=document.getElementById(`sue${ci}_${pi}`);
             const paq=parseFloat(qpaq?.value)||0;
             const sue=parseFloat(qsue?.value)||0;
-            const t=(paq*p.pp)+sue;
-            if(t>0){
-                filled++;
-                if(p.mn===0&&p.mx===0){}
-                else if(t<p.mn){low++}
-                else if(t>p.mx){high++}
-                else{ok++}
-            }
+            const sp=p.sp!=null?p.sp:1;
+            const t=(paq*p.pp)+(sue*sp);
+            if(paq>0||sue>0)filled++;
+            if(t>0)units+=t;
         });
     });
     const pct=total>0?(filled/total*100):0;
     document.getElementById('pFill').style.width=pct+'%';
     document.getElementById('pTxt').textContent=`${filled} / ${total}`;
-    document.getElementById('sOk').textContent=ok;
-    document.getElementById('sLow').textContent=low;
-    document.getElementById('sHigh').textContent=high;
+    document.getElementById('sFilled').textContent=filled;
+    document.getElementById('sPending').textContent=total-filled;
+    document.getElementById('sUnits').textContent=fmtN(Math.round(units));
 }
 
 function togCat(ci){
@@ -1355,15 +1235,9 @@ function collect(){
                 const qsue=document.getElementById(`sue${ci}_${pi}`);
                 const paq=parseFloat(qpaq?.value)||0;
                 const sue=parseFloat(qsue?.value)||0;
-                const total=(paq*p.pp)+sue;
-                let status='--';
-                if(total>0){
-                    if(p.mn===0&&p.mx===0)status='N/A';
-                    else if(total<p.mn)status='BAJO';
-                    else if(total>p.mx)status='EXCESO';
-                    else status='OK';
-                }
-                return{n:p.n,pres:p.pres,pp:p.pp,mn:p.mn,mx:p.mx,u:p.u,paq,sue,total,status}
+                const sp=p.sp!=null?p.sp:1;
+                const total=(paq*p.pp)+(sue*sp);
+                return{n:p.n,pres:p.pres,pp:p.pp,sp,u:p.u,paq,sue,total}
             })
         }))
     };
@@ -1379,9 +1253,7 @@ function saveCount(){
     d.summary={
         total:d.cats.reduce((s,c)=>s+c.items.length,0),
         filled:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.total>0).length,0),
-        low:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.status==='BAJO').length,0),
-        high:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.status==='EXCESO').length,0),
-        ok:d.cats.reduce((s,c)=>s+c.items.filter(p=>p.status==='OK').length,0)
+        units:Math.round(d.cats.reduce((s,c)=>s+c.items.reduce((a,p)=>a+p.total,0),0))
     };
     h.unshift(d);localStorage.setItem('invHist',JSON.stringify(h));
     toast('Conteo guardado correctamente','ok');renderHist();
@@ -1392,11 +1264,7 @@ function clearAll(){
         if(!y)return;
         document.querySelectorAll('#invForm .qpaq, #invForm .qsuelt').forEach(inp=>inp.value='');
         DB.forEach((cat,ci)=>cat.items.forEach((p,pi)=>{
-            const row=document.getElementById(`r${ci}_${pi}`);
-            const b=document.getElementById(`b${ci}_${pi}`);
             const t=document.getElementById(`tot${ci}_${pi}`);
-            if(row)row.classList.remove('st-low','st-high','st-ok');
-            if(b)b.textContent='--';
             if(t)t.textContent='0';
         }));
         document.getElementById('cResp').value='';
@@ -1427,33 +1295,24 @@ function confirm2(msg){
 function genReport(saved){
     const d=saved||collect();
     const ds=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'}):'Sin fecha';
-    let tot=0,fill=0,low=0,high=0,ok=0,rows='';
+    let tot=0,fill=0,units=0,rows='';
     d.cats.forEach(cat=>{
-        rows+=`<tr class="cr"><td colspan="7">${cat.name}</td></tr>`;
+        rows+=`<tr class="cr"><td colspan="5">${cat.name}</td></tr>`;
         cat.items.forEach(p=>{
             tot++;
-            let qd,sc='co';
-            if(p.total>0){
+            const hasVal=p.paq>0||p.sue>0;
+            let qd;
+            if(hasVal){
                 fill++;
-                if(p.status==='BAJO'){sc='cl';low++}
-                else if(p.status==='EXCESO'){sc='ch';high++}
-                else if(p.status==='OK'){ok++}
-                qd=`<span class="${sc}">${fmtN(p.total)}</span>`;
+                units+=p.total;
+                qd=`<span class="co">${fmtN(p.total)}</span>`;
             }else{qd='<span class="ev">--</span>'}
-            const stTxt=p.total>0?
-                (p.status==='BAJO'?'<span style="color:#ef4444;font-weight:700">BAJO</span>'
-                :p.status==='EXCESO'?'<span style="color:#f59e0b;font-weight:700">EXCESO</span>'
-                :p.status==='OK'?'<span style="color:#55C800;font-weight:700">OK</span>'
-                :'<span style="color:#3a3a3a">--</span>'):'';
-            const minmax=(p.mn===0&&p.mx===0)?'--':`${fmtN(p.mn)} / ${fmtN(p.mx)}`;
             rows+=`<tr>
                 <td style="padding-left:16px">${p.n}</td>
                 <td class="pres">${p.pres||''}</td>
-                <td style="text-align:center">${fmtN(p.paq)}</td>
-                <td style="text-align:center">${fmtN(p.sue)}</td>
-                <td style="text-align:right"><strong>${fmtN(p.total)}</strong> <span style="font-size:.85em;color:#747474">${p.u||''}</span></td>
-                <td style="text-align:center;color:#747474">${minmax}</td>
-                <td style="text-align:center">${stTxt}</td>
+                <td style="text-align:center">${hasVal?fmtN(p.paq):'<span class="ev">--</span>'}</td>
+                <td style="text-align:center">${hasVal?fmtN(p.sue):'<span class="ev">--</span>'}</td>
+                <td style="text-align:right">${qd} <span style="font-size:.85em;color:#747474">${p.u||''}</span></td>
             </tr>`;
         });
     });
@@ -1466,11 +1325,9 @@ function genReport(saved){
             <th style="text-align:center">PAQ/CAJA</th>
             <th style="text-align:center">PZ SUELTAS</th>
             <th style="text-align:right">TOTAL</th>
-            <th style="text-align:center">MIN / MAX</th>
-            <th style="text-align:center">ESTADO</th>
         </tr></thead>
         <tbody>${rows}</tbody>
-        <tfoot><tr class="tr"><td colspan="2">TOTAL: ${tot} | CONTADOS: ${fill}</td><td colspan="2">OK: ${ok}</td><td>BAJO: ${low}</td><td>EXCESO: ${high}</td><td style="text-align:center">${Math.round(fill/tot*100)}%</td></tr></tfoot></table>`;
+        <tfoot><tr class="tr"><td colspan="2">TOTAL: ${tot} | CONTADOS: ${fill}</td><td colspan="2" style="text-align:right">UNIDADES TOTALES:</td><td style="text-align:right">${fmtN(Math.round(units))}</td></tr></tfoot></table>`;
     document.getElementById('rptModal').classList.add('show');
 }
 
@@ -1496,7 +1353,7 @@ function renderHist(){
             <div class="hico"><i class="fas fa-clipboard-check"></i></div>
             <div class="hinfo">
                 <h4>${item.date||'SIN FECHA'}</h4>
-                <p>${item.resp||'SIN RESPONSABLE'} · ${item.loc||'SIN SEDE'} · ${item.summary?.filled||0}/${item.summary?.total||0} CONTADOS · ${item.summary?.low||0} BAJO · ${item.summary?.high||0} EXCESO</p>
+                <p>${item.resp||'SIN RESPONSABLE'} · ${item.loc||'SIN SEDE'} · ${item.summary?.filled||0}/${item.summary?.total||0} CONTADOS · ${item.summary?.units||0} UDS</p>
             </div>
             <div class="hacts">
                 <button onclick="event.stopPropagation();loadHist(${i})" title="Cargar"><i class="fas fa-upload"></i></button>
